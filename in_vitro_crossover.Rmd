@@ -1,0 +1,299 @@
+---
+title: "Zucchini2 MasterSizer Analysis"
+output: html_notebook
+---
+
+Load libraries
+```{r}
+library(tidyverse)
+library(patchwork)
+library(RColorBrewer)
+library(ggtext)
+
+library(lme4)
+library(lmerTest)
+
+theme_set(theme_bw() +
+            theme(axis.text = element_text(color = "black"),
+                  axis.ticks = element_line(color = "black"),
+                  plot.title = element_text(hjust = 0.5)))
+
+
+```
+
+
+Load data
+```{r}
+
+data <- read.csv("data/in_vitro/z2_mastersizer.csv") %>%
+  dplyr::select(Record.Number:X3500)
+
+metadata <- read.csv("data/in_vitro/z2_metadata.csv")
+
+
+
+# Combine data with metadata
+data <- data %>%
+  left_join(metadata, by = c("rand_ID" = "rand")) %>%
+  dplyr::select(-orig) %>%
+  relocate(substrate_donor_short:inoc_donor_long, .after = rand_ID)
+
+# Filter measurements with obvious particle aggregation
+## Defined as particles found at >2mm
+data <- data[rowSums(data[,which(colnames(data) == "X2100"):which(colnames(data) == "X3500")]) == 0,]
+# no effect
+
+# Summarize D10-D50-D90 data
+d.melt <- data %>%
+  dplyr::select(rand_ID:Dx..90.) %>%
+  gather(key=D, value=val, Dx..10.:Dx..90.)
+d.summary <- d.melt %>%
+  group_by(substrate_donor_short, inoc_donor_short, D) %>%
+  dplyr::summarize(mean=mean(val), se=sd(val)/sqrt(length(val)))
+
+# Rename D-metrics
+d.summary[d.summary$D == "Dx..10.","D"] <- "10th percentile"
+d.summary[d.summary$D == "Dx..50.","D"] <- "50th percentile (median)"
+d.summary[d.summary$D == "Dx..90.","D"] <- "90th percentile"
+
+
+# Subset medians
+medians <- d.summary %>%
+  filter(D == "50th percentile (median)") %>%
+  dplyr::select(-D)
+
+colnames(medians) <- c("substrate", "inoc", "median", "se")
+
+
+```
+
+
+# Plot
+```{r}
+
+donor_order <- medians %>%
+  filter(substrate == "PE27" & inoc != "control") %>%
+  arrange(desc(median)) %>%
+  pull(inoc) %>%
+  c("control", .)
+
+medians$inoc <- factor(medians$inoc, levels = donor_order)
+
+medians %>%
+  lmer(median ~ inoc + (1 | substrate), data = .) %>%
+  summary()
+# inocNH84     -2.8733     3.7803  20.0000  -0.760  0.45607   
+# inocEX17      2.3133     3.7803  20.0000   0.612  0.54747   
+# inocSM56     -0.8133     3.7803  20.0000  -0.215  0.83183   
+# inocAA89      1.5267     3.7803  20.0000   0.404  0.69061   
+# inocWB74     -4.4600     3.7803  20.0000  -1.180  0.25192   
+# inocPJ48     -3.8000     3.7803  20.0000  -1.005  0.32680   
+# inocQX74     -3.3933     3.7803  20.0000  -0.898  0.38005   
+# inocXD99     -6.9200     3.7803  20.0000  -1.831  0.08211 . 
+# inocGT64     -8.3067     3.7803  20.0000  -2.197  0.03994 * 
+# inocZQ31    -14.4333     3.7803  20.0000  -3.818  0.00108 **
+
+medians_summary <- medians %>%
+  group_by(inoc) %>%
+  summarize(mean=mean(median), se = sd(median)/sqrt(length(median)))
+ 
+
+z2_plot <- ggplot(medians, aes(x = inoc, y = median, color = substrate)) +
+  geom_point(position=position_jitter(0.05), alpha=0.5) +
+  geom_errorbar(data = medians_summary, aes(x=inoc, ymin=mean, ymax=mean),
+                width=0.5, color = "red", inherit.aes = F) +
+  geom_errorbar(data = medians_summary, aes(x=inoc, ymin=mean-se, ymax=mean+se),
+                width=0.25, inherit.aes = F) + 
+  labs(x = "Inoculation donor", y = "Median FPS (μm)", color = "Substrate donor") +
+  annotate(geom = "text", x = 10:11, y = c(90, 85), label = "*", size = 10) +
+  scale_color_brewer(palette = "Dark2")
+
+#ggsave("plots/z2_medians.png", z2_plot, height = 3, width = 6.5)
+
+
+
+medians_spread <- medians %>%
+  dplyr::select(-se) %>%
+  filter(inoc != "control") %>%
+  spread(key = substrate, value = median) %>%
+  mutate(inoc = as.character(inoc)) %>%
+  ungroup()
+
+cor.test(medians_spread$PE27,
+         medians_spread$WH89, method = "spearman") # p = 0.1661, rho = 0.4787879 
+cor.test(medians_spread$ZR77,
+         medians_spread$WH89, method = "spearman") # p = 0.01165, rho = 0.7818182  
+cor.test(medians_spread$PE27,
+         medians_spread$ZR77, method = "spearman") # p = 0.2956, rho = 0.369697 
+
+plot_corr <- function(x, y, rho, p, label_x, label_y) {
+  ggplot(medians_spread, aes_string(x = x, y = y, color = "inoc")) +
+  geom_point(size = 2) +
+  labs(color = "Inoculation donor") +
+  geom_richtext(data = data.frame(label = paste0("rho = ", rho, " <br>*p* = ", p),
+                                  x = label_x, y = label_y),
+                aes(label = label, x = x, y = y),
+                size = 4.5, fill = NA, label.color = NA, inherit.aes = F) +
+    scale_color_brewer(palette = "Paired") %>%
+    return()
+}
+
+corr_plot_A <- plot_corr("WH89", "PE27", 0.48, 0.17, 71, 81.5)
+corr_plot_B <- plot_corr("ZR77", "WH89", 0.78, 0.012, 85, 72)
+corr_plot_C <- plot_corr("PE27", "ZR77", 0.37, "0.30", 87, 90)
+
+
+corr_patch <- corr_plot_A +
+  corr_plot_B +
+  corr_plot_C +
+  plot_layout(guides = "collect")
+
+#ggsave("plots/Z2_fps_corr.png", corr_patch, height=3, width = 9)
+
+
+medians_spread %>%
+  lm(PE27 ~ ZR77 + WH89, data = .) %>%
+  summary()
+# predict PE27: p = 0.3227
+# predict WH89: p = 0.01385 *
+# predict ZR77: p = 0.01447 *
+# Really this is just because WH89 and ZR77 are so nicely correlated; PE27 does not seem to add anything
+
+
+```
+
+# Does particle size reduction relate to SCFA production?
+```{r}
+scfa <- read.csv("data/in_vitro/z2_scfa_mapped.csv") %>%
+  #filter(inoc != "control") %>%
+  spread(key = scfa, value = conc) %>%
+  mutate(Total = rowSums(.[,3:8], na.rm = T)) %>%
+  arrange(substrate, inoc) %>%
+  dplyr::select(-c(substrate, inoc))
+
+scfa_and_fps <- medians %>%
+  #filter(inoc != "control") %>%
+  arrange(substrate, inoc) %>%
+  cbind(scfa)
+
+scfa_and_fps %>%
+  lmer(Acetate ~ median + substrate + (1 | inoc), data = .) %>%
+  summary()
+# Total: p = 0.0501
+# Acetate: p = 0.1043  
+# Butyrate: p = 0.000566 ***
+# Propionate: p = 0.00207 ** 
+# Valerate: p = 0.284    
+# Isovalerate: p = 1.16e-05 ***
+# Isobutyrate: p = 0.000958 ***
+
+#corr_plot2 <- function(scfa, p, y_axis_label)
+
+scfa_total_fps_plot <- ggplot(scfa_and_fps, aes(x = median, y = Total,
+                                          color = as.character(inoc), shape = substrate)) +
+  geom_point(size = 2) + 
+  #geom_richtext(data = data.frame(label = "total ~ FPS + (1 | substrate)<br>*p* = 0.050",
+  #                                x = 95, y = 11),
+  #              aes(label = label, x = x, y = y),
+  #              size = 4.5, fill = NA, label.color = NA, inherit.aes = F) +
+  labs(x = "Median FPS (μm)", y = "Total SCFA concentration (mM)",
+       color = "Inoculation donor", shape = "Substrate donor") +
+  scale_color_brewer(palette = "Paired") +
+  facet_wrap(~substrate, scales = "free")
+  
+
+#ggsave("plots/fps_total_scfa_corr.png", scfa_total_fps_plot, height = 4.5, width = 7)
+
+scfa_and_fps_melt <- scfa_and_fps %>%
+  dplyr::select(-c(Total, se)) %>%
+  gather(key = scfa, value = conc, 4:9) %>%
+  mutate(inoc = as.character(inoc)) %>%
+  mutate(scfa = factor(scfa, levels = c("Acetate", "Butyrate", "Propionate",
+                                        "Valerate", "Isovalerate", "Isobutyrate")))
+
+pval_df <- data.frame(label = paste0("*p* = ", c("0.10", "5.7 x 10<sup>-4</sup>", "0.0021", "0.28", "1.2 x 10<sup>-5</sup>", "9.6 x 10<sup>-4</sup>")),
+                      x = 90,
+                      y = c(5.75, 2, 2.3, 0.12, 0.8, 0.8),
+                      scfa = c("Acetate", "Butyrate", "Propionate",
+                                        "Valerate", "Isovalerate", "Isobutyrate")) %>%
+  mutate(scfa = factor(scfa, levels = c("Acetate", "Butyrate", "Propionate",
+                                        "Valerate", "Isovalerate", "Isobutyrate")))
+
+scfa_indiv_fps_plot <- ggplot(scfa_and_fps_melt, aes(x = median, y = conc,
+                                          color = inoc, shape = substrate)) +
+  geom_point(size = 2) + 
+  geom_richtext(data = pval_df,
+               aes(label = label, x = x, y = y),
+               size = 4.5, fill = NA, label.color = NA, inherit.aes = F) +
+  labs(x = "Median FPS (μm)", y = "Concentration (mM)",
+       color = "Inoculation donor", shape = "Substrate donor") +
+  facet_wrap(~scfa, scales = "free") +
+  scale_color_brewer(palette = "Paired")
+  
+#ggsave("plots/fps_indiv_scfa_corr.png", scfa_indiv_fps_plot, height = 6, width = 12)
+
+
+```
+
+# PCA
+```{r}
+# Summarize all particle bins per sample
+summarize_fps_all_bins <- function(df) {
+  df %>%
+    gather(key=size, value=volume, (ncol(.)-100):ncol(.)) %>%
+    mutate(size = as.numeric(substr(size, 2, nchar(size)))) %>%
+    group_by(substrate_donor_short, inoc_donor_short, size) %>%
+    dplyr::summarize(mean=mean(volume)) %>%
+    ungroup() %>%
+    as.data.frame()
+}
+
+# Do PCA
+medians2 <- scfa_and_fps %>%
+  mutate(sample = paste0(substrate, "_", inoc)) %>%
+  dplyr::select(sample, median, Acetate:Total)
+
+all_bins_spread <- summarize_fps_all_bins(data) %>%
+  spread(key = size, value = mean) %>%
+  mutate(sample = paste0(substrate_donor_short, "_", inoc_donor_short)) %>%
+  left_join(medians2) %>%
+  relocate(sample:Total, .after = inoc_donor_short) %>%
+  mutate(inoc = case_when(inoc == "con" ~ "Control",
+                          T ~ inoc)) %>%
+  mutate(inoc = factor(inoc, levels = c(toupper(letters[1:10]), "Control")))
+  
+
+
+all_bins_spread_data <- all_bins_spread %>%
+  dplyr::select(`0.01`:`3500`) %>%
+  select_if(colSums(.) > 0)
+  
+
+fps_pca <- prcomp(all_bins_spread_data, center = TRUE, scale. = TRUE)
+
+# slow step
+adonis2(scale(all_bins_spread_data) ~ inoc, data = all_bins_spread,
+        strata = all_bins_spread$substrate,
+        permutations=9999, method = "eu")
+# R2 = 0.18298, p = 0.0012 **
+
+
+fps_pca_plot <- autoplot(fps_pca, data = all_bins_spread, colour = "inoc",
+                         size = "median", shape = "substrate", alpha = 0.8) +
+  scale_color_brewer(palette = "Paired") +
+  geom_textbox(data = data.frame(x=-0.1, y = 0.1,
+                                 label = "PERMANOVA<br>(inoc, strata=substrate)<br>*R*<sup>2</sup> = 0.18<br>*p* = 0.0012"),
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"), inherit.aes = F) +
+  labs(colour = "Inoc donor", shape = "Substrate donor", size = "Median FPS (μm)")
+
+# Plot with SCFA
+adonis2(scale(all_bins_spread_data) ~ Total, data = all_bins_spread,
+        strata = all_bins_spread$substrate,
+        permutations=9999, method = "eu") # NS
+
+#saveRDS(fps_pca_plot, "plots/z3_plot.rds")
+
+
+```
+

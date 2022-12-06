@@ -1,0 +1,2444 @@
+---
+title: "Human participant particle size analysis"
+output: html_notebook
+---
+
+# Load libraries
+```{r}
+# Plotting
+library(tidyverse)
+library(RColorBrewer)
+library(ggtern)
+library(ggfortify)
+library(ggtext)
+library(ggrepel)
+library(ggupset)
+library(cowplot)
+
+# Stats
+library(phyloseq)
+library(lme4)
+library(lmerTest)
+library(vegan)
+library(ALDEx2)
+library(ade4)
+library(factoextra)
+library(cluster)
+
+theme_set(theme_bw() +
+            theme(axis.text = element_text(color = "black"),
+                  axis.ticks = element_line(color = "black"),
+                  plot.title = element_text(hjust = 0.5)))
+
+set.seed(123)
+
+
+```
+
+# Load data
+```{r}
+# Read in data
+## Cohort 1 - Cognition study
+cohort1 <- read.csv("data/onr_mastersizer_all.csv")
+## Cohort 2 - Chewing study
+cohort2 <- read.csv("data/epsom_mastersizer_with_metadata.csv")
+
+# Omit reads with obvious aggregation (particles greater than filter size detected)
+omit_aggregates <- function(df) {
+  df[rowSums(df[,which(colnames(df) == "X2100"):which(colnames(df) == "X3500")]) == 0,] %>%
+    return()
+}
+
+cohort1 <- omit_aggregates(cohort1) %>%
+  dplyr::rename(day_merge = day) %>%
+  mutate(week = "Baseline") %>%
+  relocate(week, .after = participant) # make formatting consistent with cohort2
+cohort2 <- omit_aggregates(cohort2)
+
+# Summarize D10-D50-D90 per sample
+summarize_fps_D <- function(df) {
+  df %>%
+    dplyr::select(participant:Dx..90.) %>%
+    gather(key=D, value=val, (ncol(.)-2):ncol(.)) %>%
+    mutate(D = case_when(D == "Dx..10." ~ "10th percentile",
+                         D == "Dx..50." ~ "50th percentile (median)",
+                         D == "Dx..90." ~ "90th percentile")) %>%
+    group_by(participant, week, day_merge, D) %>%
+    dplyr::summarize(mean=mean(val), se=sd(val)/sqrt(length(val)))
+}
+
+cohort1_D <- summarize_fps_D(cohort1)
+cohort2_D <- summarize_fps_D(cohort2)
+
+# Summarize all particle bins per sample
+summarize_fps_all_bins <- function(df) {
+  df %>%
+    gather(key=size, value=volume, (ncol(.)-100):ncol(.)) %>%
+    mutate(size = as.numeric(substr(size, 2, nchar(size)))) %>%
+    group_by(participant, week, day_merge, size) %>%
+    dplyr::summarize(mean=mean(volume)) %>%
+    ungroup() %>%
+    as.data.frame()
+}
+
+cohort1_all_bins <- summarize_fps_all_bins(cohort1)
+cohort2_all_bins <- summarize_fps_all_bins(cohort2)
+
+# Summarize sand-silt-clay per sample
+summarize_soil <- function(df) {
+  df %>%
+    filter(mean > 0) %>%
+    mutate(soiltype = case_when(size < 2 ~ "Clay",
+                                size < 50 & size >= 2 ~ "Silt",
+                                size < 2000 & size >= 50 ~ "Sand")) %>%
+    group_by(participant, week, day_merge, soiltype) %>%
+    dplyr::summarize(percent = sum(mean)) %>%
+    spread(key = soiltype, value = percent) %>%
+    mutate(Clay = replace_na(Clay, 0)) %>%
+    ungroup() %>%
+    as.data.frame()
+}
+
+cohort1_soil <- summarize_soil(cohort1_all_bins)
+cohort2_soil <- summarize_soil(cohort2_all_bins)
+
+
+```
+
+# Ternary plots
+```{r}
+# Plot soil type using ggtern package
+data(USDA)
+
+USDA_text <- USDA  %>%
+  group_by(Label) %>%
+  summarise_if(is.numeric, mean, na.rm = TRUE) %>%
+  as.data.frame() %>%
+  mutate(Label = as.character(Label))
+# Adjust a few labels to be out of the way of points
+USDA_text$Label[USDA_text$Label == "Loamy Sand"] <- "Loamy\nSand"
+USDA_text[USDA_text$Label == "Sandy Loam",
+          c("Clay", "Sand", "Silt")] <- c(0.15, 0.7, 0.15)
+USDA_text[USDA_text$Label == "Loam",
+          c("Clay", "Sand", "Silt")] <- c(0.2, 0.45, 0.35)
+USDA_text[USDA_text$Label == "Silt Loam",
+          c("Clay", "Sand", "Silt")] <- c(0.11, 0.14, 0.74)
+
+paired_palette <- brewer.pal(n = 12, "Paired")
+
+soil_all <- rbind(mutate(cohort1_soil, cohort = "Cohort 1"),
+                  mutate(cohort2_soil, cohort = "Cohort 2")) %>%
+  filter(week == "Baseline")
+
+soil_plot <- ggplot(data = USDA, aes(y = Clay, x = Sand, z = Silt)) +
+  coord_tern(L = "x", T = "y", R = "z") +
+  geom_polygon(aes(fill = Label), alpha = 00, size = 0.5, color = "black") +
+  geom_text(data = USDA_text, aes(label = Label), color = "black", size = 2) +
+  geom_point(data = soil_all, aes(x = Sand, y = Clay, z = Silt, fill = cohort),
+             color = "black", shape = 21, alpha = 0.5, size = 2, inherit.aes = F) +
+  theme_showarrows() +
+  theme_clockwise() +
+  labs(yarrow = "Clay (%)",
+       zarrow = "Silt (%)",
+       xarrow = "Sand(%)") +
+  guides(fill = "none") +
+  scale_fill_manual(values = c(rep("black", 2), paired_palette[2], paired_palette[6],
+                               rep("black", 10))) +
+  theme(tern.axis.arrow = element_line(size = 1))
+
+#ggsave("plots/fps_ternary_by_cohort.png", soil_plot, height = 5, width = 5)
+
+# Plotting individuals on this type of plot leads to uninterpretable results...
+
+# Plot chewing vs. baseline for cohort 2
+soil_chew_plot <- ggplot(data = USDA, aes(y = Clay, x = Sand, z = Silt)) +
+  coord_tern(L = "x", T = "y", R = "z") +
+  geom_polygon(aes(fill = Label), alpha = 00, size = 0.5, color = "black") +
+  geom_text(data = USDA_text, aes(label = Label), color = "black", size = 2) +
+  geom_point(data = cohort2_soil,
+             aes(x = Sand, y = Clay, z = Silt, color = week)) +
+  theme_showarrows() +
+  theme_clockwise() +
+  labs(yarrow = "Clay (%)",
+       zarrow = "Silt (%)",
+       xarrow = "Sand(%)",
+       color = "Week") +
+  guides(fill = "none") +
+  scale_color_brewer(palette = "Set1") +
+  theme(tern.axis.arrow = element_line(size = 1))
+
+#ggsave("plots/fps_ternary_EPSOM.png", soil_chew_plot, height = 5, width = 6)
+
+```
+
+# Plot baseline data for D10-D50-D90
+```{r}
+D_all <- rbind(mutate(cohort1_D, cohort = "Cohort 1"),
+               mutate(cohort2_D, cohort = "Cohort 2",
+                      day_merge = as.character(day_merge))) %>%
+  filter(week == "Baseline")
+
+baseline_order <- D_all %>%
+  filter(D == "50th percentile (median)") %>%
+  group_by(participant) %>%
+  dplyr::summarize(baseline_mean = mean(mean)) %>%
+  #pull(baseline_mean) %>%
+  arrange(baseline_mean) %>%
+  pull(participant)
+
+D_baseline_plot <- D_all %>%
+  mutate(participant = factor(participant, levels = baseline_order)) %>%
+  ggplot(aes(x = mean, y = participant, group = participant, color = cohort)) +
+  geom_point() +
+  geom_line(linetype="dotted") +
+  geom_errorbar(aes(xmin=mean-se, xmax=mean+se), width=0.5) +
+  labs(y="Participant", x= "Particle size (μm)", color = "Cohort") +
+  scale_color_manual(values = c(paired_palette[2], paired_palette[6])) +
+  theme(axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) +
+  facet_wrap(~D, scales="free_x") +
+  scale_x_log10() +
+  geom_textbox(data = data.frame(x=15, y = 66, label = "ANOVA<br>*p* < 2 × 10<sup>-16</sup>",
+                                 D = "50th percentile (median)"),
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"), inherit.aes = F)
+#ggsave("plots/baseline_FPS_both_cohorts.png", D_baseline_plot, height = 6, width = 9)
+
+D_all %>%
+  filter(D == "50th percentile (median)") %>%
+  aov(mean ~ participant, data = .) %>%
+  summary()
+# participant  75 208005  2773.4   8.983 <2e-16 ***
+
+D_all %>%
+  filter(D == "50th percentile (median)") %>%
+  pull(mean) %>%
+  mean() # 43.1 - average median FPS across all baseline samples
+
+D_all %>%
+  filter(D == "50th percentile (median)") %>%
+  group_by(participant) %>%
+  summarize(mean2 = mean(mean)) %>%
+  pull(mean2) %>%
+  mean() # 44.5 - average of within-individual averages
+
+```
+
+# Plot PCA of all particle size bins
+```{r}
+# Make size of points scale with FPS
+all_bins_all <- rbind(mutate(cohort1_all_bins, cohort = "Cohort 1"),
+               mutate(cohort2_all_bins, cohort = "Cohort 2",
+                      day_merge = as.character(day_merge))) %>%
+  filter(week == "Baseline") %>%
+  mutate(sample = paste0(participant, "_", day_merge))
+
+# Plot curves
+## Here I've now plotted just the one participant with the strong outlier point
+## It looks like a regular curve; I have no reason to think something went wrong here
+curves_plot <- cohort2_all_bins %>%
+  filter(participant == "IJ90") %>%
+  ggplot(aes(x = size, y = mean, group = day_merge)) +
+  geom_line() +
+  scale_x_log10(limits=c(0.25, 2000)) +
+  labs(x="Particle Size (μm)", y="Particles by volume (%)")
+
+all_bins_summary <- all_bins_all %>%
+  group_by(size) %>%
+  summarize(mean2 = mean(mean), se = sd(mean)/sqrt(length(mean)), sd = sd(mean))
+
+all_curves_plot <- ggplot(all_bins_all, aes(x = size, y = mean, group = sample)) +
+  geom_line(alpha = 0.175) +
+  geom_ribbon(data = all_bins_summary, aes(x = size, ymin=mean2-sd, ymax=mean2+sd),
+              color = NA, fill = "red", alpha = 0.25, inherit.aes = F) +
+  geom_line(data = all_bins_summary, aes(x = size, y = mean2),
+            color = "red3", size = 1.25, inherit.aes = F) +
+  scale_x_log10(limits=c(0.276, 2100)) +
+  labs(x="Particle size (μm)", y="Particles by volume (%)") +
+  geom_hline(color = "black", yintercept = 0, linetype = "dashed")
+
+# Do PCA
+all_bins_spread <- all_bins_all %>%
+  spread(key = size, value = mean)
+
+all_bins_spread_data <- all_bins_spread %>%
+  dplyr::select(`0.01`:`3500`) %>%
+  select_if(colSums(.) > 0)
+
+fps_pca <- prcomp(all_bins_spread_data, center = TRUE, scale. = TRUE)
+
+# slow step
+# adonis2(scale(all_bins_spread_data) ~ cohort + participant, data = all_bins_spread,
+#       permutations=9999, method = "eu")
+# participant: R2 = 0.74 p < 0.0001
+# cohort: 
+
+# Add median to include size in PCA
+D_all_for_merge <- D_all %>%
+  filter(D == "50th percentile (median)") %>%
+  mutate(sample = paste0(participant, "_", day_merge)) %>%
+  dplyr::rename(median_FPS = mean)
+  
+all_bins_spread <- all_bins_spread %>%
+  mutate(sample = paste0(participant, "_", day_merge)) %>%
+  left_join(D_all_for_merge)
+
+fps_pca_plot <- autoplot(fps_pca, data = all_bins_spread, colour = "participant", size = "median_FPS", alpha = 0.5) +
+  geom_line(aes(group = participant, color = participant)) +
+  theme(legend.position = "none") +
+  geom_textbox(data = data.frame(x=0.1, y = -0.2, label = "PERMANOVA<br>*R*<sup>2</sup> = 0.74<br>*p* < 0.0001"),
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"), inherit.aes = F)
+#ggsave("plots/baseline_FPS_PCA.png", fps_pca_plot, height = 4, width = 5)
+
+fps_pca_plot_cohort <- autoplot(fps_pca, data = all_bins_spread,
+                         colour = "cohort", size = "median_FPS") +
+  scale_color_manual(values = c(paired_palette[2], paired_palette[6])) +
+  labs(color = "Cohort", size = "Median FPS")
+#ggsave("plots/baseline_FPS_PCA_cohort.png", fps_pca_plot_cohort, height = 4, width = 6)
+
+
+```
+
+## K-means clustering
+```{r}
+sos_plot <- fviz_nbclust(all_bins_spread_data, kmeans, method = "wss") +
+  theme_bw() + # elbow at k=4-5
+  labs(y = "Total within sum of square") +
+  theme(plot.title = element_blank())
+gap_stat <- clusGap(all_bins_spread_data, FUN = kmeans, nstart = 25, K.max = 10, B = 50) %>%
+   fviz_gap_stat() + # slower method; max at k=5
+  theme_bw() + theme(plot.title = element_blank())
+
+#sos_plot + gap_stat
+
+#perform k-means clustering with k = 4 clusters
+km <- kmeans(all_bins_spread_data, centers = 5, nstart = 25)
+
+k_clust <- fviz_cluster(km, data = all_bins_spread_data, labelsize = NA, main = F,
+                        shape = 19, show.clust.cent = F,
+                        pointsize = log2(all_bins_spread$median_FPS) / 2, alpha = 0.5) +
+  theme_bw() +
+  labs(color = "Cluster", fill = "Cluster", shape = "Cluster")
+
+kdata <- cbind(all_bins_spread[,c(1:5, 108)], cluster = km$cluster)
+
+kdata_summary <- kdata %>%
+  group_by(cluster) %>%
+  summarize(mean = mean(median_FPS), se=sd(median_FPS)/sqrt(length(median_FPS)))
+
+kcurves_summary <- all_bins_all %>%
+  left_join(kdata[,c("sample", "cluster")]) %>%
+  #mutate(cluster = paste0("Cluster ", cluster)) %>%
+  mutate(cluster = as.character(cluster)) %>%
+  group_by(cluster, size) %>%
+  summarize(mean2 = mean(mean), se=sd(mean)/sqrt(length(mean)))
+
+# Plot curves
+k_curves_summary_plot <- ggplot(kcurves_summary, aes(x = size, y = mean2,
+                                                     group = cluster, color = cluster)) +
+  geom_ribbon(data = kcurves_summary, aes(x = size, ymin=mean2-se, ymax=mean2+se,
+                                          fill = cluster),
+              color = NA, alpha = 0.35, inherit.aes = F) +
+  geom_line() +
+  labs(x="Particle size (μm)", y="Particles by volume (%)",
+       color = "Cluster", fill = "Cluster") +
+  geom_hline(color = "black", yintercept = 0, linetype = "dashed") +
+  scale_x_log10(limits=c(0.276, 2100))
+
+# Analyze clusters by median FPS
+kdata %>%
+  aov(median_FPS ~ factor(cluster) + participant, data = .) %>%
+  #TukeyHSD(which = "factor(cluster)")
+  summary()
+# cluster p < 2e-16, participant p = 0.00034
+# Tukey: all diff except 1-2
+
+# Plot median_FPS
+k_median_plot <- ggplot(kdata, aes(x = cluster, y = median_FPS)) +
+  geom_point(position=position_jitter(0.05), alpha=0.25) +
+  geom_errorbar(data = kdata_summary, aes(x=cluster, ymin=mean, ymax=mean),
+                color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = kdata_summary, aes(x=cluster, ymin=mean-se, ymax=mean+se),
+                width=0.25, inherit.aes = F) + 
+  labs(x = "Cluster", y = "Median FPS (μm)") +
+  annotate(geom = "text", x = 1:5, y = c(60, 90, 250, 20, 120),
+           label = c("a", "a", "b", "c", "d")) +
+  scale_y_log10()
+
+# Upset plot
+k_upset <- kdata %>%
+  dplyr::select(participant, cluster) %>%
+  distinct() %>%
+  group_by(participant) %>% 
+  summarize(clusters = list(cluster)) %>% 
+  ggplot(aes(x=clusters)) +
+  geom_bar() +
+  scale_x_upset(n_intersections = 20) +
+  labs(x = "Clusters", y = "Participants (#)")
+# 39 participants in only one cluster
+
+
+
+# Remake ternary plot by cluster
+soil_all2 <- rbind(mutate(cohort1_soil, cohort = "Cohort 1"),
+                  mutate(cohort2_soil, cohort = "Cohort 2")) %>%
+  filter(week == "Baseline") %>%
+  mutate(sample = paste0(participant, "_", day_merge)) %>%
+  left_join(kdata[,c("sample", "cluster")]) %>%
+  mutate(cluster = factor(cluster))
+
+soil_plot2 <- ggplot(data = USDA, aes(y = Clay, x = Sand, z = Silt)) +
+  coord_tern(L = "x", T = "y", R = "z") +
+  geom_polygon(aes(fill = Label), alpha = 00, size = 0.5, color = "black") +
+  geom_text(data = USDA_text, aes(label = Label), color = "black", size = 2) +
+  geom_point(data = soil_all2, aes(x = Sand, y = Clay, z = Silt, fill = factor(cluster)),
+             color = "black", shape = 21, alpha = 0.5, size = 2, inherit.aes = F) +
+  scale_fill_manual(values = c("#F8766D", "#A3A500", "#00BF7D", "#00B0F6", "#E76BF3",
+                               rep("black", 12)))
+  theme_showarrows() +
+  theme_clockwise() +
+  labs(yarrow = "Clay (%)",
+       zarrow = "Silt (%)",
+       xarrow = "Sand(%)") +
+  guides(fill = "none") +
+  theme(tern.axis.arrow = element_line(size = 1), legend.position = "top")
+  
+
+```
+
+
+# Relating baseline FPS to other metrics
+## 16S - diversity and overall NMDS
+```{r}
+ps <- readRDS("data/phyloseq_EPSOM_and_ONR.rds")
+# Start with 3673 taxa, 313 samples
+
+ps_filt <- prune_samples(sample_sums(ps) >= 5000, ps) %>%
+  filter_taxa(function(x) sum(x > 3) > 0.1*length(x), TRUE)
+# Reduces to 287 taxa, 313 samples
+
+samdf <- sample_data(ps) %>%
+  as.data.frame()
+
+# Examine diversity
+# Using unfiltered data here
+diversity <- ps %>%
+  estimate_richness(split = TRUE, measures=c("Shannon", "Observed")) %>%
+  cbind(samdf[rownames(.),], .) %>%
+  gather(key = measure, value = value, c("Shannon", "Observed")) %>%
+  mutate(sample = paste0(participant, "_", day)) %>%
+  relocate(sample) %>%
+  inner_join(D_all_for_merge)
+# SM56_F1 not present in 16S - seems there was a problem with that well
+
+## lm
+diversity %>%
+  filter(measure == "Shannon") %>%
+  lmer(value ~ median_FPS + (1 | participant), data = .) %>%
+  summary()
+# Observed: p = 4.75e-09
+# Shannon: p = 5.37e-07
+
+# Get total read depth
+## Checking if read depth could be driving the observed diversity-FPS correlation
+## (i.e. if there are more bacterial cells, we get more reads --> more diversity)
+read_depth <- ps %>%
+  psmelt() %>%
+  mutate(sample = paste0(participant, "_", day)) %>%
+  group_by(sample) %>%
+  dplyr::summarize(reads = sum(Abundance))
+
+diversity <- diversity %>%
+  left_join(read_depth)
+
+# Get diversity and FPS means within participant
+diversity_summary <- diversity %>%
+  group_by(participant, cohort, measure) %>%
+  summarize(value = mean(value), median_FPS = mean(median_FPS), reads = mean(reads))
+
+diversity_summary %>%
+  filter(measure == "Observed") %>%
+  lm(value ~ median_FPS, data = .) %>%
+  summary()
+# Observed R2 = 0.3712
+# Shannon R2 = 0.3359
+
+## Spearman
+cor.test(diversity_summary[diversity_summary$measure == "Shannon",]$value,
+         diversity_summary[diversity_summary$measure == "Shannon",]$median_FPS,
+         method = "spearman")
+# Observed: p = 5.617e-10, rho = -0.6381527
+# Shannon: p = 3.04e-08, rho = -0.5940123 
+
+
+## Plot
+diversity_plot <- ggplot(diversity, aes(x = median_FPS, y = value, color = cohort)) +
+  #geom_point(alpha = 0.1) +
+  geom_point(data = diversity_summary) +
+  scale_color_brewer(palette = "Set1") +
+  labs(x = "Median FPS (μm)", y = "Alpha diversity", color = "Cohort") +
+  geom_textbox(data = data.frame(x=c(82, 100),
+                                 y = c(200, 4.2),
+                                 label = c("*p* = 4.8 x 10<sup>-9</sup>",
+                                           "*p* = 5.4 x 10<sup>-7</sup>"),
+                                 measure = c("Observed", "Shannon")),
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"), inherit.aes = F) +
+  facet_wrap(~measure, scales = "free_y") +
+  scale_x_log10()
+
+diversity_summary_plot <- ggplot(diversity_summary,
+                                 aes(x = median_FPS, y = value, color = cohort)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set1") +
+  labs(x = "Median FPS (μm)", y = "Alpha diversity", color = "Cohort") +
+  geom_textbox(data = data.frame(x=c(62, 62),
+                                 y = c(220, 4.2),
+                                 label = c("Spearman's &rho; = -0.64<br>*p* = 5.6 x 10<sup>-10</sup>",
+                                           "Spearman's &rho; = -0.59<br>*p* = 3.0 x 10<sup>-8</sup>"),
+                                 measure = c("Observed", "Shannon")),
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"), inherit.aes = F) +
+  facet_wrap(~measure, scales = "free_y") +
+  scale_x_log10()
+
+#ggsave("plots/EPSOM_and_ONR_diversity_by_FPS.png", diversity_plot, height = 4, width = 8)
+
+# Diversity and read depth
+cor.test(diversity_summary[diversity_summary$measure == "Observed",]$value,
+         diversity_summary[diversity_summary$measure == "Observed",]$reads,
+         method = "spearman")
+# Observed = 0.1192, rho = 0.1802572
+# Shannon p = 0.5721, rho = -0.06570062 
+
+diversity_summary_reads_plot <- ggplot(diversity_summary,
+                                 aes(x = reads, y = value, color = cohort)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set1") +
+  labs(x = "Reads", y = "Alpha diversity", color = "Cohort") +
+  geom_textbox(data = data.frame(x=c(90000, 90000),
+                                 y = c(75, 4.2),
+                                 label = c("Spearman's &rho; = 0.18<br>*p* = 0.12",
+                                           "Spearman's &rho; = -0.066<br>*p* = 0.57"),
+                                 measure = c("Observed", "Shannon")),
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"), inherit.aes = F) +
+  facet_wrap(~measure, scales = "free_y") +
+  scale_x_log10()
+
+cor.test(diversity_summary[diversity_summary$measure == "Observed",]$median_FPS,
+         diversity_summary[diversity_summary$measure == "Observed",]$reads,
+         method = "spearman")
+# p = 0.8637, rho = -0.01998633 
+
+diversity_FPS_reads_plot <- ggplot(diversity_summary[diversity_summary$measure == "Shannon",],
+                                 aes(x = median_FPS, y = reads, color = cohort)) +
+  geom_point() +
+  scale_color_brewer(palette = "Set1") +
+  labs(x = "Median FPS (μm)", y = "Reads", color = "Cohort") +
+  geom_textbox(data = data.frame(x=c(40),
+                                 y = c(115000),
+                                 label = c("Spearman's &rho; = -0.020<br>*p* = 0.86")),
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"), inherit.aes = F) +
+  scale_x_log10()
+
+diversity %>%
+  filter(measure == "Observed") %>%
+  lmer(value ~ median_FPS + reads + (1 | participant), data = .) %>%
+  summary()
+# Shannon ~ reads: p = 0.969
+# Observed ~ reads: p = 3.82e-07 ***
+# reads ~ median_FPS: p = 0.111
+
+# Observed ~ median_FPS + reads:
+# median_FPS  -4.726e-01  8.241e-02  1.431e+02  -5.735 5.59e-08 ***
+# reads        5.267e-04  1.159e-04  1.801e+02   4.545 1.01e-05 ***
+
+# So, observed ASVs does correlate with read depth (expected),
+## but even accounting for this, the effect of median_FPS is greater
+
+diversity %>%
+  filter(measure == "Observed") %>%
+  lmer(median_FPS ~ reads + (1 | participant), data = .) %>%
+  summary()
+
+fps_reads_plot <- diversity %>%
+  filter(measure == "Observed") %>%
+  ggplot(aes(x=reads, y = median_FPS)) +
+  geom_point() +
+  labs(x = "Reads", y = "Median FPS (μm)") +
+  scale_y_log10() +
+  geom_smooth(method = "lm")
+
+# Diversity on PCA
+diversity_for_merge <- diversity %>%
+  dplyr::select(sample, measure, value) %>%
+  spread(key = measure, value = value)
+  
+all_bins_spread_div <- all_bins_spread %>%
+  inner_join(diversity_for_merge)
+
+all_bins_spread_data_div <- all_bins_spread_div %>%
+  dplyr::select(`0.01`:`3500`) %>%
+  select_if(colSums(.) > 0)
+ 
+fps_pca_div <- prcomp(all_bins_spread_data_div, center = TRUE, scale. = TRUE)
+ 
+# adonis2(scale(all_bins_spread_data_div) ~ Observed + participant,
+#         data = all_bins_spread_div,
+#         permutations=9999, method = "eu")
+# Shannon       1   1626.2 0.14255 58.7333  1e-04 ***
+# participant  75   6791.4 0.59532  3.2704  1e-04 ***
+
+# Observed      1   1968.6 0.17256 71.654  1e-04 ***
+# participant  75   6472.2 0.56734  3.141  1e-04 ***
+ 
+diversity_pca_obs <- autoplot(fps_pca_div, data = all_bins_spread_div,
+                         fill = "Observed", size = "median_FPS",
+                         shape = 21, color = "black") +
+  scale_fill_distiller(palette = "RdYlBu", direction = -1) +
+  labs(fill = "Observed ASVs", size = "Median FPS (μm)") +
+  geom_textbox(data = data.frame(x=0.05, y = 0.18, label = "PERMANOVA<br>observed *R*<sup>2</sup> = 0.17, *p* < 0.0001<br>participant *R*<sup>2</sup> = 0.57, *p* < 0.0001"),
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"), 
+               width = unit(3, "inch"), size = 3.5, inherit.aes = F)
+
+diversity_pca_sha <- autoplot(fps_pca_div, data = all_bins_spread_div,
+                         fill = "Shannon", size = "median_FPS",
+                         shape = 21, color = "black") +
+  scale_fill_distiller(palette = "RdYlBu", direction = -1) +
+  labs(fill = "Shannon diversity", size = "Median FPS (μm)") +
+  geom_textbox(data = data.frame(x=0.05, y = 0.17, label = "PERMANOVA<br>Shannon *R*<sup>2</sup> = 0.14, *p* < 0.0001<br>participant *R*<sup>2</sup> = 0.60, *p* < 0.0001"),
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"),
+               width = unit(3, "inch"), size = 3.5, inherit.aes = F)
+#ggsave("plots/diversity_pca_observed.png", diversity_pca, height = 4, width = 6)
+
+# Microbiome NMDS with FPS
+ps_baseline <- ps %>%
+  subset_samples(week == "Baseline")
+
+samdf_baseline <- sample_data(ps_baseline) %>%
+  as.matrix() %>%
+  as.data.frame() %>%
+  mutate(sample = paste0(participant, "_", day)) %>%
+  left_join(dplyr::select(D_all_for_merge, sample, median_FPS))
+
+rownames(samdf_baseline) <- sample_names(ps_baseline)
+
+ps_baseline@sam_data <- samdf_baseline %>%
+  sample_data()
+
+ps_baseline <- ps_baseline %>%
+  subset_samples(!is.na(median_FPS))
+
+# Extract points for greater freedom of plotting
+ord.nmds.bray <- ordinate(ps_baseline, method="NMDS", distance="bray")
+
+nmds <- ord.nmds.bray$points %>% as.data.frame() %>%
+  cbind(as.matrix(as.data.frame(ps_baseline@sam_data)), .) %>%
+  mutate(median_FPS = as.numeric(median_FPS)) %>%
+  left_join(kdata[,c("sample", "cluster")]) %>%
+  mutate(cluster = factor(cluster))
+
+bray <- distance(ps_baseline, method = "bray") %>% as.matrix()
+# slow
+# adonis2(formula = bray ~ median_FPS + cohort + participant, 
+#         data = samdf_baseline[rownames(bray),],
+#         permutations=9999, method = "bray")
+# median_FPS    1    1.455 0.02812 18.8191  1e-04 ***
+# cohort        1    4.034 0.07794 52.1659  1e-04 ***
+# participant  74   37.915 0.73257  6.6257  1e-04 ***
+
+nmds_plot <- ggplot(nmds, aes(x=MDS1, y=MDS2, size = median_FPS, color = cohort)) +
+  geom_point(alpha = 0.5) +
+  scale_color_brewer(palette = "Set1") +
+  labs(x="NMDS1", y = "NMDS2", size="Median FPS (μm)", color = "Cohort") +
+  geom_textbox(data = data.frame(x=0.8, y = -1, label = "PERMANOVA<br>FPS *R*<sup>2</sup> = 0.028, *p* < 0.0001<br>cohort *R*<sup>2</sup> = 0.078, *p* < 0.0001<br>participant *R*<sup>2</sup> = 0.73, *p* < 0.0001"),
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"),
+               width = unit(3, "inch"), size = 3, inherit.aes = F)
+#ggsave("plots/NMDS_median.png", nmds_plot, height=3, width=5.5)
+
+
+bray <- distance(ps_baseline, method = "bray") %>% as.matrix()
+# slow
+# adonis2(formula = bray ~ cluster + cohort + participant, 
+#          data = samdf_baseline[rownames(bray),] %>%
+#           left_join(kdata[,c("sample", "cluster")]) %>%
+#           mutate(cluster = factor(cluster)),
+#          permutations=9999, method = "bray")
+#cluster       4    2.818 0.05446  9.0699  1e-04 ***
+#cohort        1    3.757 0.07259 48.3577  1e-04 ***
+#participant  74   37.023 0.71535  6.4403  1e-04 ***
+
+
+nmds_cluster_plot <- ggplot(nmds, aes(x=MDS1, y=MDS2, size = median_FPS, color = cluster)) +
+  geom_point(alpha = 0.5) +
+  labs(x="NMDS1", y = "NMDS2", size="Median\nFPS (μm)", color = "Cluster") +
+  geom_textbox(data = data.frame(x=0.835, y = -1, label = "PERMANOVA<br>cluster *R*<sup>2</sup> = 0.054, *p* < 0.0001<br>cohort *R*<sup>2</sup> = 0.073, *p* < 0.0001<br>participant *R*<sup>2</sup> = 0.72, *p* < 0.0001"),
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"),
+               width = unit(3, "inch"), inherit.aes = F)
+
+
+
+
+# Look at diversity and k-means clusters
+diversity <- diversity %>%
+  left_join(kdata[,c("sample", "cluster")])
+
+divk_summary <- diversity %>%
+  group_by(measure, cluster) %>%
+  summarize(mean=mean(value), se = sd(value)/sqrt(length(value)))
+
+diversity %>%
+  filter(measure == "Observed") %>%
+  aov(value ~ factor(cluster) + participant, data = .) %>%
+  TukeyHSD(which = "factor(cluster)")
+#  summary()
+# Shannon: cluster p < 2e-16, participant p = 3.14e-12
+# Observed: cluster p < 2e-16, participant p = 8.41e-08
+# Shannon: a, b, c, ab, c
+# Observed: a, b, c, a, c
+
+k_div_annotation <- data.frame(label = c("a", "b", "c", "a", "c",
+                                         "a", "b", "c", "ab", "c"),
+                               cluster = rep(1:5, 2),
+                               value = c(265, 250, 180, 285, 170,
+                                         4.5, 4.25, 4.05, 4.8, 4.65),
+                               measure = c(rep("Observed", 5), rep("Shannon", 5)))
+
+k_div_plot <- ggplot(diversity, aes(x = cluster, y = value)) +
+  geom_point(position=position_jitter(0.05), alpha=0.25) +
+  geom_errorbar(data = divk_summary, aes(x=cluster, ymin=mean, ymax=mean),
+               color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = divk_summary, aes(x=cluster, ymin=mean-se, ymax=mean+se),
+               width=0.25, inherit.aes = F) + 
+  labs(x = "Cluster", y = "Alpha diversity") +
+  #annotate(geom = "text", x = 6, y = 250, label = "*", size = 10) +
+  facet_wrap(~measure, scales = "free_y") +
+  geom_text(data = k_div_annotation, aes(label = label))
+#  geom_textbox(data = data.frame(x=2.5, y = c(255, 4.42), label = c("ANOVA<br>cluster *p* < 2 #x 10<sup>-16</sup><br>participant *p* = 8.4 x 10<sup>-8</sup>", "ANOVA<br>cluster *p* < 2 x #10<sup>-16</sup><br>participant *p* = 3.1 x 10<sup>-12</sup>"),
+#                                 measure = c("Observed", "Shannon")),
+#               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+#               box.padding = grid::unit(rep(0, 4), "pt"),
+#               width = unit(3, "inch"), inherit.aes = F)
+
+
+```
+
+## 16S - specific taxa
+```{r}
+ps_baseline_filt <- ps_baseline %>%
+  prune_samples(sample_sums(.) >= 5000, .) %>%
+  filter_taxa(function(x) sum(x > 3) > 0.1*length(x), TRUE)
+
+# ALDEx2 GLM incorporating multiple variables (not ideal to distinguish all participants...)
+otu_flip <- as.data.frame(t(ps_baseline_filt@otu_table))
+mm <- samdf_baseline[rownames(as.data.frame(as.matrix(ps_baseline_filt@sam_data))),] %>%
+  model.matrix(~ median_FPS + cohort + participant, data = .)
+
+# ALDEx2 correlation (not incorporating participant...)
+clr <- aldex.clr(otu_flip, mm, mc.samples = 128, denom ="all")
+#glm.test <- aldex.glm(clr) # slow
+# write.csv(glm.test, "plots/aldex_glm_baseline_participant_cohort_medianFPS.csv")
+
+#glm.test <- glm.test %>%
+#  dplyr::select(!contains("participant"))
+# all NS for median_FPS; some p < 0.05 for cohort
+
+corr.test <- aldex.corr(clr,cont.var = samdf_baseline[rownames(as.data.frame(as.matrix(ps_baseline_filt@sam_data))),]$median_FPS)
+#write.csv(corr.test, "plots/aldex_corrtest_baseline_medianFPS.csv")
+
+corr.test <- read.csv("plots/aldex_corrtest_baseline_medianFPS.csv", row.names = 1)
+
+# ALDEx2 KW test by cluster
+conds <- samdf_baseline[rownames(as.data.frame(as.matrix(ps_baseline_filt@sam_data))),] %>%
+  left_join(kdata[,c("sample", "cluster")]) %>%
+  mutate(cluster = factor(cluster)) %>%
+  pull(cluster)
+
+#kw.test <- aldex.clr(otu_flip, conds, mc.samples=128, denom="all") %>%
+#  aldex.kw()
+#write.csv(kw.test, "plots/aldex_kw_cluster.csv")
+
+# 29 / 298 KW.eBH p < 0.05
+
+volcano <- ggplot(cbind(kw.test, corr.test),
+                  aes(x=spearman.erho, y = -log10(kw.eBH),
+                      color = kw.eBH < 0.05)) +
+  geom_point() +
+  scale_color_manual(values = c("black", "red")) +
+  labs(x = "Correlation with FPS (Spearman's &rho;)",
+       y = "Kruskal-Wallis<span> </span>test of cluster<br>-log<sub>10</sub>(*p*-value)") +
+  theme(axis.title.y = element_markdown(),
+        axis.title.x = element_markdown(),
+        legend.position = "none")
+
+signif_taxa <- cbind(kw.test, corr.test) %>%
+  filter(kw.eBH < 0.05) %>%
+  arrange(spearman.erho) %>%
+  rownames()
+
+melty <- ps_baseline_filt %>%
+  microbiome::transform(transform = "compositional") %>%
+  psmelt() %>%
+  left_join(kdata[,c("sample", "cluster")]) %>%
+  mutate(cluster = factor(cluster)) %>%
+  mutate(binom = case_when(is.na(Genus) ~ paste0(Family, " family (", OTU, ")"),
+                           !is.na(Genus) & is.na(Species) ~
+                             paste0("*", Genus, " sp.* (", OTU, ")"),
+                           !is.na(Species) ~
+                             paste0("*", Genus, " ", Species, "* (", OTU, ")")))
+
+select_taxa <- c("ASV 121", "ASV 30", "ASV 42") # top three by kw.eBH
+
+select_taxa_order <- c("*UCG-002 sp.* (ASV 121)",
+                       "*Anaerostipes hadrus* (ASV 30)",
+                       "*[Ruminococcus] gnavus group sp.* (ASV 42)")
+
+melty_summary <- melty %>%
+  filter(OTU %in% select_taxa) %>%
+  group_by(binom, cluster) %>%
+  summarize(mean = mean(Abundance), se=sd(Abundance)/sqrt(length(Abundance))) %>%
+  mutate(binom = factor(binom, levels = select_taxa_order))
+
+# Follow up with Tukey test on CLR
+ps_baseline_filt %>%
+  microbiome::transform(transform = "clr") %>%
+  psmelt() %>%
+  filter(OTU == "ASV 30") %>%
+  left_join(kdata[,c("sample", "cluster")]) %>%
+  mutate(cluster = factor(cluster)) %>%
+  aov(Abundance ~ cluster + participant, data = .) %>%
+  TukeyHSD(which = "cluster")
+# ASV 121: all diff except 2-4 and 3-5 --> a, b, c, b, c
+# ASV 30: all diff except 1-2, 1-4, 2-4 --> a, a, b, a, c
+# ASV 42: all diff except 1-2, 1-4, 2-4, 3-5 --> a, a, b, a, b
+
+tax_labels <- data.frame(cluster = rep(1:5, 3),
+                         Abundance = c(0.02, 0.09, 0.145, 0.04, 0.17,
+                                       0.065, 0.075, 0.125, 0.09, 0.045,
+                                       0.031, 0.014, 0.0045, 0.017, 0.0065),
+                         binom = rep(c("*[Ruminococcus] gnavus group sp.* (ASV 42)", "*Anaerostipes hadrus* (ASV 30)", "*UCG-002 sp.* (ASV 121)"), each = 5),
+                         label = c("b", "b", "a", "b", "a",
+                                   "c", "c", "a", "c", "b",
+                                   "a", "b", "c", "b", "c")) %>%
+  mutate(binom = factor(binom, levels = select_taxa_order))
+
+tax_plot <- melty %>%
+ filter(OTU %in% select_taxa) %>%
+  mutate(binom = factor(binom, levels = select_taxa_order)) %>%
+ ggplot(aes(x = cluster, y = Abundance, color = cohort)) +
+ geom_point(position = position_jitter(height = 0, width = 0.05), alpha = 0.5) +
+ geom_errorbar(data = melty_summary, aes(x=cluster, ymin=mean, ymax=mean),
+               color = "red", width=0.5, inherit.aes = F) +
+ geom_errorbar(data = melty_summary, aes(x=cluster, ymin=mean-se, ymax=mean+se),
+               width=0.25, inherit.aes = F) + 
+ labs(x = "Cluster", y = "Relative abundance", color = "Cohort") +
+  geom_text(data = tax_labels, aes(label = label, x = cluster, y = Abundance),
+            inherit.aes = F) +
+ scale_color_brewer(palette = "Set1") +
+ facet_wrap(~binom, scales = "free", ncol = 1) +
+ theme(strip.text = element_markdown())
+
+
+# Complement to volcano
+signif_taxa_plot <- cbind(kw.test, corr.test) %>%
+  filter(kw.eBH < 0.05) %>%
+  mutate(OTU = rownames(.)) %>%
+  left_join(melty %>%
+              dplyr::select(OTU, binom, Order) %>%
+              distinct()) %>%
+  arrange(spearman.erho) %>% 
+  ggplot(aes(x = spearman.erho, y = fct_reorder(binom, spearman.erho))) +
+  geom_col(aes(fill = Order)) +
+  labs(y = "", x = "Correlation with FPS (Spearman's &rho;)") +
+  theme(axis.text.y = element_markdown(),
+        axis.title.x = element_markdown())
+  
+  
+
+```
+
+## SCFA
+```{r}
+# CSV files being loaded here were pre-processed by merging batches and
+## multiplying all values by the dilution factor of 10.
+# And, already have NA values replaced with the lower of 1 (lowest standard used) or
+## the minimum value detected for that SCFA
+
+cohort1_scfa <- read.csv("data/ONR_all_gc.csv") %>%
+  filter(time %in% c("T1", "F1")) %>%
+  dplyr::select(ID, time, Acetate, Butyrate, Isobutyrate,
+                Isovalerate, Propionate, Valerate) %>%
+  dplyr::rename(participant = ID, day = time) %>%
+  mutate(cohort = "Cohort 1") %>%
+  relocate(cohort)
+
+cohort2_scfa <- read.csv("data/EPSOM_all_gc.csv") %>%
+  filter(week == "Baseline") %>%
+  dplyr::select(ID, day_merge, scfa, conc) %>%
+  dplyr::rename(participant = ID, day = day_merge) %>%
+  spread(key = scfa, value = conc) %>%
+  mutate(cohort = "Cohort 2") %>%
+  relocate(cohort)
+
+scfa_all <- rbind(cohort1_scfa, cohort2_scfa) %>%
+  mutate(sample = paste0(participant, "_", day)) %>%
+  inner_join(D_all_for_merge) %>%
+  mutate(Total = Acetate + Butyrate + Propionate + Isobutyrate + Isovalerate + Valerate) %>%
+  left_join(kdata[,c("sample", "cluster")]) %>%
+  dplyr::select(cohort, sample, participant, day_merge, cluster, median_FPS,
+                Acetate:Valerate, Total) %>%
+  gather(key = scfa, value = conc, Acetate:Total) %>%
+  mutate(scfa = factor(scfa, levels = c("Total", "Acetate", "Butyrate", "Propionate",
+                                         "Isobutyrate", "Isovalerate", "Valerate")))
+
+# ANOVA
+scfa_all %>%
+  filter(scfa == "Total") %>%
+  aov(conc ~ factor(cluster) + participant, data = .) %>%
+  #TukeyHSD(which = "factor(cluster)")
+  summary()
+# Total: cluster p = 0.02, participant p = 3.59e-10
+## 4-3 and 4-5 different --> ab, ab, a, b, a
+# Acetate: cluster p = 0.00205, participant p = 4.57e-11
+## 4-3 and 4-5 different --> ab, ab, a, b, a
+# Butyrate: cluster p = 0.0764, participant p = 5.66e-05
+## NA
+# Propionate: cluster p = 0.000597, participant p = 2.73e-16 
+## 2-4, 3-4, and 4-5 --> ab, a, a, b, a
+# Isobutyrate: cluster p = 0.000112, participant p = 1.78e-09
+## 4-3 and 4-5 different --> ab, ab, b, a, b
+# Isovalerate: cluster p = 0.000316, participant p = 1.94e-06
+## 2-4, 3-4, and 4-5 --> ab, b, b, a, b
+# Valerate: cluster p = 2.85e-05, participant p = 3.88e-11
+## 3-2, 5-2, 4-3, and 5-4 different --> ab, a, b, a, b
+
+scfa_signif_labels <- data.frame(cluster = rep(1:5, 5),
+                                 scfa = rep(c("Acetate", "Propionate", "Isobutyrate",
+                                              "Isovalerate", "Valerate"), each = 5),
+                         conc = c(115, 85, 120, 90, 95,
+                                  44, 36, 35, 25, 45,
+                                  5.4, 4.1, 4, 5.1, 3.7,
+                                  7.4, 6, 7.3, 7.3, 6,
+                                  6.4, 5.4, 6.2, 6.25, 4.5),
+                         label = c("ab", "ab", "a", "b", "a",
+                                   "ab", "a", "a", "b", "a",
+                                   "ab", "ab", "b", "a", "b",
+                                   "ab", "b", "b", "a", "b",
+                                   "ab", "a", "b", "a", "b")) %>%
+  mutate(scfa = factor(scfa, levels = c("Total", "Acetate", "Butyrate", "Propionate",
+                                         "Isobutyrate", "Isovalerate", "Valerate")))
+
+# Mean + se
+scfa_all_summary <- scfa_all %>%
+  group_by(cluster, scfa) %>%
+  summarize(mean = mean(conc), se = sd(conc)/sqrt(length(conc)))
+
+scfa_total_plot <- scfa_all %>%
+  filter(scfa == "Total") %>%
+  ggplot(aes(x = cluster, y = conc)) +
+  geom_point(position = position_jitter(height = 0, width = 0.05), alpha = 0.25) +
+  geom_errorbar(data = filter(scfa_all_summary, scfa == "Total"),
+                aes(x=cluster, ymin=mean, ymax=mean),
+                color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = filter(scfa_all_summary, scfa == "Total"),
+                aes(x=cluster, ymin=mean-se, ymax=mean+se),
+                width=0.25, inherit.aes = F) + 
+    annotate(geom = "text", x = 1:5, y = c(185, 145, 195, 145, 160),
+           label = c("ab", "ab", "a", "b", "a")) +
+  labs(y = "Total SCFA concentration (mM)", x = "Cluster")
+
+scfa_indiv_plot <- scfa_all %>%
+  filter(scfa != "Total") %>%
+  ggplot(aes(x = cluster, y = conc)) +
+  geom_point(position = position_jitter(height = 0, width = 0.05), alpha = 0.25) +
+  geom_errorbar(data = filter(scfa_all_summary, scfa != "Total"),
+                aes(x=cluster, ymin=mean, ymax=mean),
+                color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = filter(scfa_all_summary, scfa != "Total"),
+                aes(x=cluster, ymin=mean-se, ymax=mean+se),
+                width=0.25, inherit.aes = F) + 
+  labs(y = "SCFA concentration (mM)", x = "Cluster") +
+  geom_text(data = scfa_signif_labels, aes(label = label, x = cluster, y = conc),
+            inherit.aes = F) +
+  facet_wrap(~scfa, scales = "free_y", ncol = 2)
+
+
+
+# Calculate proportions
+scfa_prop <- scfa_all %>%
+  spread(key = scfa, value = conc) %>%
+  mutate(Acetate = Acetate / Total,
+         Butyrate = Butyrate / Total,
+         Propionate = Propionate / Total,
+         Isobutyrate = Isobutyrate / Total,
+         Isovalerate = Isovalerate / Total,
+         Valerate = Valerate / Total) %>%
+  dplyr::select(-Total) %>%
+  gather(key = scfa, value = conc, Acetate:Valerate) %>%
+  mutate(scfa = factor(scfa, levels = c("Total", "Acetate", "Butyrate", "Propionate",
+                                         "Isobutyrate", "Isovalerate", "Valerate")))
+
+scfa_prop %>%
+  filter(scfa == "Isovalerate") %>%
+  aov(conc ~ factor(cluster) + participant, data = .) %>%
+  #TukeyHSD(which = "factor(cluster)")
+  summary()
+# Ace: cluster p = 0.00814, participant p = 1.41e-09
+## different: none --> a, a, a, a, a
+# But: cluster p = 0.00247, participant p = 5.71e-09
+## diff: only 1-2, 2-3 --> b, a, b, ab, ab
+# Pro: cluster p = 0.00049, participant p = 1.75e-14
+## diff: only 3-4 --> ab, ab, a, b, ab
+# Ibut: cluster p = 3.82e-12, participant p = 2.16e-08
+## diff: all except 1-2, 1-3, 3-5 --> bc, b, cd, a, d
+# Ival: cluster p = 1.15e-09, participant p = 2.40e-07
+## diff: all except 1-2, 1-4, 2-3, 2-5, 3-5 --> ab, bc, c, a, c
+# Val: cluster p = 1.69e-15, participant p = 2.67e-06
+## diff: all except 1-2, 1-3, 3-5 --> bc, b, cd, a, d
+  
+scfa_prop_signif_labels <- data.frame(cluster = rep(1:5, 6),
+                                 scfa = rep(c("Acetate", "Butyrate", "Propionate",
+                                              "Isobutyrate", "Isovalerate", "Valerate"),
+                                            each = 5),
+                         conc = c(0.75, 0.78, 0.76, 0.78, 0.86,
+                                  0.32, 0.33, 0.36, 0.33, 0.36,
+                                  0.35, 0.36, 0.34, 0.36, 0.4,
+                                  0.07, 0.068, 0.065, 0.095, 0.06,
+                                  0.14, 0.1, 0.14, 0.175, 0.125,
+                                  0.065, 0.075, 0.075, 0.1, 0.072),
+                         label = c("a", "a", "a", "a", "a",
+                                   "b", "a", "b", "ab", "ab",
+                                   "ab", "ab", "a", "b", "ab",
+                                   "bc", "b", "cd", "a", "d",
+                                   "ab", "bc", "c", "a", "c",
+                                   "bc", "b", "cd", "a", "d")) %>%
+  mutate(scfa = factor(scfa, levels = c("Total", "Acetate", "Butyrate", "Propionate",
+                                         "Isobutyrate", "Isovalerate", "Valerate")))
+  
+scfa_prop_summary <- scfa_prop %>%
+  group_by(scfa, cluster) %>%
+  summarize(mean = mean(conc), se = sd(conc)/sqrt(length(conc)))
+  
+scfa_prop_plot <- scfa_prop %>%
+  filter(scfa != "Total") %>%
+  ggplot(aes(x = cluster, y = conc)) +
+  geom_point(position = position_jitter(height = 0, width = 0.05), alpha = 0.25) +
+  geom_errorbar(data = filter(scfa_prop_summary, scfa != "Total"),
+                aes(x=cluster, ymin=mean, ymax=mean),
+                color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = filter(scfa_prop_summary, scfa != "Total"),
+                aes(x=cluster, ymin=mean-se, ymax=mean+se),
+                width=0.25, inherit.aes = F) + 
+  labs(y = "Proportional SCFA concentration (mM / mM total)", x = "Cluster") +
+  geom_text(data = scfa_prop_signif_labels, aes(label = label, x = cluster, y = conc),
+            inherit.aes = F) +
+  facet_wrap(~scfa, scales = "free_y")
+
+
+```
+
+## Diet
+```{r}
+# Load diet data and make formatting consistent
+cohort1_diet <- read.csv("data/ONR_DHQ3.csv") %>%
+  dplyr::select(-c(dhq3_id, Record.Number, Sex..1.male..2.female.,
+                   Questionnaire.Date..YYYYMMDD.,
+                   X.Glycemic.index.glucose.reference,
+                   X.Glycemic.index.bread.reference)) %>%
+  mutate(cohort = "Cohort 1") %>%
+  relocate(cohort)
+
+cohort2_diet <- read.csv("data/EPSOM_dhq3_results.csv") %>%
+  dplyr::select(-c(DHQ3_username, Record.Number, Sex..1.male..2.female., Age,
+                   Respondent.ID, Questionnaire.Date..YYYYMMDD.)) %>%
+  mutate(cohort = "Cohort 2") %>%
+  relocate(cohort) %>%
+  dplyr::rename(Alcohol.drinks = Alcohol..drink.s..)
+
+all(colnames(cohort1_diet) == colnames(cohort2_diet)) # TRUE
+
+diet_all <- rbind(cohort1_diet, cohort2_diet) %>%
+  rename(participant = ID)
+
+# Merge with FPS
+D50_baseline_mean <- D_all_for_merge %>%
+  dplyr::select(participant, median_FPS) %>%
+  group_by(participant) %>%
+  dplyr::summarize(mean = mean(median_FPS)) %>%
+  ungroup()
+
+diet_all <- diet_all %>%
+  inner_join(D50_baseline_mean) %>%
+  relocate(mean, .after = participant) %>%
+  dplyr::rename(median_FPS = mean,
+                Protein = Protein..g., SFat = Total.saturated.fatty.acids..g.,
+                MFat = Total.monounsaturated.fatty.acids..g.,
+                PFat = Total.polyunsaturated.fatty.acids..g.,
+                Sugar = Total.sugars..g., Carb = Carbohydrate..g.,
+                Fiber = Dietary.fiber..g.) %>%
+  mutate(Netcarb = Carb - Fiber)
+
+## Make proportional to calories
+# for(col in 6:301) {
+#   diet_all[,col] <- diet_all[,col] / diet_all[,"Energy..kcal."]
+# }
+
+
+# PCA of diet
+diet_macro_matrix <- diet_all[,c("Netcarb", "Total.fat..g.", "Fiber", 
+                                 "Protein", "X.Soluble.dietary.fiber..g.",
+                                 "X.Insoluble.dietary.fiber..g.")]
+
+diet_macro_pca <- prcomp(diet_macro_matrix, center = TRUE, scale. = TRUE)
+
+adonis2(scale(diet_macro_matrix) ~ median_FPS, data = diet_all,
+        permutations=9999, method = "eu")
+# Raw values: R2 = 0.03184, p = 0.1022
+
+diet_macro_pca_plot <- autoplot(diet_macro_pca, data = diet_all, size = "median_FPS",
+                                alpha = 0.5) +
+    geom_textbox(data = data.frame(x=0.32, y = 0.1,
+                                 label = "PERMANOVA<br>*R*<sup>2</sup> = 0.032<br>*p* = 0.10"),
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"), inherit.aes = F) +
+  labs(size = "Median FPS (μm)")
+
+# Run all correlations with MCC
+corr_df <- data.frame(var = colnames(diet_all)[4:301], p = NA)
+
+#for(row in 1:nrow(corr_df)) {
+#  corr_df$p[row] <- cor.test(diet_all[,"median_FPS"], diet_all[,corr_df$var[row]],
+#                             method = "spearman") %>%
+#    .$p.value
+#}
+
+corr_df$p.adj <- p.adjust(corr_df$p, method = "BH") # all NA
+
+
+
+# Check out food groups
+diet_foodgroup_matrix <- diet_all[,c("Total.fruit..cups.", "Dark.green.vegetable..cups.",
+                                     "Total.red.orange.vegetable..cups.",
+                                     "Total.starchy.vegetable..cups.",
+                                     "Legumes.vegetable..cups.", "Whole.grain..oz.",
+                                     "Refined.grain..oz.",
+                                     "Total.meat..poultry..seafood.protein.foods..oz.",
+                                     "Eggs.protein.foods..oz.", "Total.dairy..cups.",
+                                     "Added.sugars..tsp.", "Alcohol.drinks")]
+
+diet_foodgroup_pca <- prcomp(diet_foodgroup_matrix, center = TRUE, scale. = TRUE)
+
+adonis2(scale(diet_foodgroup_matrix) ~ median_FPS, data = diet_all,
+        permutations=9999, method = "eu")
+# Raw values: R2 = 0.01445, p = 0.3811
+# Proportional to kcal: R2 = 0.02394, p = 0.066
+
+diet_foodgroup_pca_plot <- autoplot(diet_foodgroup_pca, data = diet_all, size = "median_FPS")
+
+
+# Pretty convinced that there is no relationship between diet and FPS
+## Some specific nutrients (soluble fiber) correlate, but not in a way that stands up to MCC or is retained in tests looking at overall structure of data
+
+# Show in supp - PCA of macronutrients with PERMANOVA statistics
+
+# Look at fiber specifically
+macro_df <- diet_all %>%
+  dplyr::select(participant, median_FPS, Protein, Total.fat..g., Carb, Fiber,
+                X.Insoluble.dietary.fiber..g., X.Soluble.dietary.fiber..g.) %>%
+  rename(Fat = Total.fat..g., `Net carbohydrate` = Carb,
+         `Insoluble fiber` = X.Insoluble.dietary.fiber..g.,
+         `Soluble fiber` = X.Soluble.dietary.fiber..g.) %>%
+  gather(key = Nutrient, value = Value, 3:8) %>%
+  mutate(Nutrient = factor(Nutrient, levels = c("Protein", "Fat",
+                                                 "Net carbohydrate","Fiber",
+                                                 "Soluble fiber", "Insoluble fiber")))
+
+macro_label <- data.frame(Nutrient = c("Net carbohydrate", "Fat", "Fiber",
+                                       "Protein", "Soluble fiber", "Insoluble fiber"),
+                          y = 105, x = c(290, 120, 36, 170, 10, 30),
+                          label = c("Spearman's &rho; = -0.048<br>*p* = 0.68",
+                                    "Spearman's &rho; = -0.15<br>*p* = 0.22",
+                                    "Spearman's &rho; = -0.17<br>*p* = 0.15",
+                                    "Spearman's &rho; = -0.17<br>*p* = 0.14",
+                                    "Spearman's &rho; = -0.22<br>*p* = 0.056",
+                                    "Spearman's &rho; = -0.17<br>*p* = 0.15")) %>%
+  mutate(Nutrient = factor(Nutrient, levels = c("Protein", "Fat",
+                                                 "Net carbohydrate","Fiber",
+                                                 "Soluble fiber", "Insoluble fiber")))
+  
+macro_corr_plot <- ggplot(macro_df, aes(x = Value, y = median_FPS)) +
+  geom_point(alpha = 0.25) +
+  facet_wrap(~Nutrient, scales = "free_x", ncol = 2) +
+  labs(x = "Nutrient intake (g/day)", y = "Median FPS (μm)") +
+  scale_y_log10() +
+  geom_textbox(data = macro_label,
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"), inherit.aes = F)
+  
+
+```
+
+## Demographics
+```{r}
+cohort1_demo <- read.csv("data/ONR_demographics.csv") %>%
+  dplyr::rename(height = height..cm., weight = weight..kg.,
+                diet_cat = Which.of.these.options.best.describes.your.diet...Select.one,
+                bm_freq = How.many.times.do.you.have.a.bowel.movement.in.an.average.day....Select.one.,
+                typical_bristol = Describe.the.quality.of.your.bowel.movements..using.the.chart.below.for.reference....Select.one..) %>%
+  dplyr::select(participant, height, weight, Sex, diet_cat, bm_freq, typical_bristol) %>%
+  mutate(bmi = weight / (height/100)^2, cohort = "Cohort 1")
+
+cohort2_demo <- read.csv("data/EPSOM_demographics.csv") %>%
+  dplyr::rename(height = Height..cm., weight = Weight..kg.,
+                diet_cat = diet,
+                bm_freq = How.many.times.do.you.have.a.bowel.movement.in.an.average.day..Select.one.) %>%
+  dplyr::select(participant, height, weight, Gender, diet_cat, bm_freq, typical_bristol) %>%
+  mutate(bmi = weight / (height/100)^2, cohort = "Cohort 2") %>%
+  rename(Sex = Gender)
+
+all(colnames(cohort1_demo) == colnames(cohort2_demo))
+
+demo_all <- rbind(cohort1_demo, cohort2_demo) %>%
+  inner_join(D_all_for_merge) %>%
+  left_join(kdata[,c("sample", "cluster")]) %>%
+  group_by(participant, height, weight, Sex, bmi, diet_cat, bm_freq, typical_bristol) %>%
+  summarize(median_FPS = mean(median_FPS)) %>%
+  mutate(bm_freq = factor(bm_freq, levels = c("Less than one", "One", "Two", "Three"))) %>%
+  mutate(Sex = case_when(Sex %in% c("Man", "Male") ~ "Man/male",
+                         Sex %in% c("Woman", "Female") ~ "Woman/female",
+                         Sex == "Nonbinary" ~ "Nonbinary"))
+
+# Stats
+demo_all %>%
+  #filter(typical_bristol != "3 to 4") %>%
+  aov(median_FPS ~ typical_bristol, data = .) %>%
+  #TukeyHSD(which = "factor(cluster)")
+  summary()
+# typical_bristol NS - p = 0.153
+# bm_freq p = 0.969
+
+# Summarize typical_bristol
+demo_all_summary <- demo_all %>%
+  group_by(typical_bristol) %>%
+  summarize(mean = mean(median_FPS), se = sd(median_FPS)/sqrt(length(median_FPS)))
+
+demo_bristol_plot <- ggplot(demo_all, aes(x = typical_bristol, y = median_FPS)) +
+  geom_point(position = position_jitter(height = 0, width = 0.05), alpha = 0.5) +
+  geom_errorbar(data = demo_all_summary, aes(x=typical_bristol, ymin=mean, ymax=mean),
+                color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = demo_all_summary, aes(x=typical_bristol, ymin=mean-se, ymax=mean+se),
+                width=0.25, inherit.aes = F) + 
+  scale_y_log10() +
+  labs(x = "Typical Bristol score", y = "Median FPS (μm)")
+#ggsave("plots/demo_bristol_plot.png", demo_bristol_plot, height = 3, width = 3)
+
+demo_freq_summary <- demo_all %>%
+  group_by(bm_freq) %>%
+  summarize(mean = mean(median_FPS), se = sd(median_FPS)/sqrt(length(median_FPS)))
+
+demo_freq_plot <- ggplot(demo_all, aes(x = bm_freq, y = median_FPS)) +
+  geom_point(position = position_jitter(height = 0, width = 0.05), alpha = 0.5) +
+  geom_errorbar(data = demo_freq_summary, aes(x=bm_freq, ymin=mean, ymax=mean),
+                color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = demo_freq_summary, aes(x=bm_freq, ymin=mean-se, ymax=mean+se),
+                width=0.25, inherit.aes = F) + 
+  scale_y_log10() +
+  labs(x = "Typical stool frequency (times/day)", y = "Median FPS (μm)")
+
+# Sex/gender (Women typically have longer transit time than men)
+demo_all_sex_summary <- demo_all %>%
+  group_by(Sex) %>%
+  summarize(mean = mean(median_FPS), se = sd(median_FPS)/sqrt(length(median_FPS)))
+
+demo_sex_plot <- ggplot(demo_all, aes(x = Sex, y = median_FPS)) +
+  geom_point(position = position_jitter(height = 0, width = 0.05), alpha = 0.5) +
+  geom_errorbar(data = demo_all_sex_summary, aes(x=Sex, ymin=mean, ymax=mean),
+                color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = demo_all_sex_summary, aes(x=Sex, ymin=mean-se, ymax=mean+se),
+                width=0.25, inherit.aes = F) + 
+  scale_y_log10() +
+  labs(x = "Sex/gender", y = "Median FPS (μm)")
+
+```
+
+## Moisture content
+```{r}
+moisture <- read.csv("data/moisture_content.csv") %>%
+  filter(complete.cases(.)) %>%
+  left_join(dplyr::select(kdata, sample, median_FPS, cluster)) %>%
+  mutate(moisture = 100 * moisture)
+
+moisture_summary <- moisture %>%
+  group_by(cluster) %>%
+  summarize(mean = mean(moisture), se = sd(moisture)/sqrt(length(moisture)))
+
+moisture %>%
+  aov(moisture ~ factor(cluster) + participant, data = .) %>%
+  #TukeyHSD(which = "factor(cluster)")
+  summary()
+# ANOVA of cluster + participant: cluster p = 1.59e-06, participant p = 0.00346
+# TukeyHSD signif for 1-2, 1-3, 2-4, 3-4 --> a, b, b, a, ab
+
+moisture_plot <- ggplot(moisture, aes(x = cluster, y = moisture)) +
+  geom_point(position = position_jitter(height = 0, width = 0.05), alpha = 0.5) +
+  geom_errorbar(data = moisture_summary, aes(x=cluster, ymin=mean, ymax=mean),
+                color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = moisture_summary, aes(x=cluster, ymin=mean-se, ymax=mean+se),
+                width=0.25, inherit.aes = F) + 
+  annotate(geom = "text", x = 1:5, y = c(90, 87, 90, 85, 88),
+           label = c("a", "b", "b", "a", "ab")) +
+  labs(x = "Cluster", y = "Fecal moisture content (%)")
+#ggsave("plots/moisture_cluster_plot.png", moisture_plot, height = 3, width = 4)
+
+moisture %>%
+  lmer(moisture ~ median_FPS + (1 | participant), data = .) %>%
+  summary()
+# p < 2e-16 
+  
+moisture_corr_plot <- ggplot(moisture, aes(x = median_FPS, y = moisture)) +
+  geom_point(alpha = 0.5) +
+  labs(x = "Median FPS (μm)", y = "Fecal moisture content (%)") +
+  scale_x_log10()
+#ggsave("plots/moisture_corr_plot.png", moisture_corr_plot, height = 3, width = 4)
+
+# Add in diversity to see how everything relates
+moisture %>%
+  left_join(dplyr::select(diversity, sample, measure, value)) %>%
+  filter(measure == "Shannon") %>%
+  lmer(median_FPS ~ moisture + value + (1 | participant), data = .) %>%
+  summary()
+# For both metrics, diversity is better predicted by median_FPS predicts than moisture (NS)
+# Similarly, median_FPS is better predicted by value predicts than moisture (NS)
+# If we just model Shannon diversity from moisture, p = 0.04
+
+```
+
+
+## Diet by trnL (ONR only)
+```{r}
+
+trnL <- readRDS("data/trnL_onr_ps.rds")
+
+# Add median_FPS, subset on samples where we actually have FPS data
+samdf_trnL <- cohort1_D %>%
+  filter(D == "50th percentile (median)") %>%
+  mutate(sample = paste0(participant, "_", day_merge)) %>%
+  dplyr::select(sample, mean) %>%
+  rename(median_FPS = mean)
+
+trnL@sam_data <- trnL@sam_data %>%
+  as.matrix() %>% as.data.frame() %>%
+  mutate(sample = paste0(subj, "_", ONR_day)) %>%
+  left_join(samdf_trnL) %>%
+  left_join(kdata[,c("sample", "cluster")]) %>%
+  column_to_rownames("sample") %>%
+  sample_data()
+
+trnL <- trnL %>%
+  prune_samples(sample_sums(.) > 0, .)  %>%
+  subset_taxa(!is.na(superkingdom)) %>%
+  subset_samples(!is.na(median_FPS)) %>%
+  filter_taxa(function(x) sum(x > 3) > 0.1*length(x), TRUE)
+# 38 taxa, 48 samples, 26 participants
+
+taxa_names(trnL) <- paste0("ASV ", 1:ntaxa(trnL))
+
+# Ordinate
+ord_trnL <- ordinate(trnL, method="NMDS", distance="bray")
+ord_plot_trnL <- plot_ordination(trnL, ord_trnL, color="median_FPS", title="Bray NMDS") +
+  scale_color_distiller(palette = "Spectral")
+
+#    labs(color = "Week") + theme(plot.title = element_blank()) +
+#    geom_textbox(data = data.frame(x=-1, y = 0.8, label = "PERMANOVA<br>*R*<sup>2</sup> = #0.0015<br>*p* = 0.41"),
+#               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+#               box.padding = grid::unit(rep(0, 4), "pt"), inherit.aes = F)
+
+# PERMANOVA
+samdf_trnL <- trnL@sam_data %>% as.matrix() %>% as.data.frame()
+# bray_trnL <- distance(trnL, method = "bray") %>% as.matrix()
+# adonis2(formula = bray_trnL ~ median_FPS, data = samdf_trnL,
+#         strata=samdf_trnL$participant, permutations=9999, method = "bray")
+# can't get this to run...
+
+# omitting ASVs not in database yields 78 taxa
+trnL_melt <- psmelt(trnL) %>%
+  dplyr::select(Sample, participant, day_merge, median_FPS, cluster, OTU, Abundance,
+                superkingdom:species) %>%
+  mutate(binom = case_when(is.na(genus) ~ paste0(family, " family (", OTU, ")"),
+                           !is.na(genus) & is.na(species) ~
+                             paste0("*", genus, " sp.* (", OTU, ")"),
+                           !is.na(species) ~
+                             paste0("*", species, "* (", OTU, ")"))) %>%
+  mutate(Abd_binary = ifelse(Abundance > 3, 1, 0)) %>%
+  group_by()
+
+trnL_pMR <- trnL_melt %>%
+  group_by(Sample, participant, day_merge, median_FPS, cluster) %>%
+  dplyr::summarize(pMR = sum(Abd_binary)) %>%
+  group_by(participant) %>%
+  dplyr::summarize(pMR = mean(pMR),
+                   median_FPS = mean(median_FPS))
+
+cor.test(trnL_pMR$median_FPS, trnL_pMR$pMR, method = "spearman") # NS
+
+## Average median_FPS within individuals
+trnL_melt <- trnL_melt %>%
+  group_by(participant, binom) %>%
+  dplyr::summarize(median_FPS = mean(median_FPS), Abd_binary = max(Abd_binary))
+
+# Alternative to above: just take first time point
+
+# Stats
+plants <- unique(trnL_melt$binom)
+
+trnL_test_df <- data.frame(plant = plants, p = NA)
+
+for(p in 1:length(plants)) {
+  
+  trnL_test_df[p, "p"] <- trnL_melt %>%
+    filter(binom == plants[p]) %>%
+    lm(median_FPS ~ factor(Abd_binary), .) %>%
+    summary() %>%
+    .$coefficients %>% as.data.frame() %>% .$`Pr(>|t|)` %>% .[2]
+    
+}
+
+
+
+trnL_test_df$p <- p.adjust(trnL_test_df$p, method = "BH")
+# LMM including all samples:
+# *Camellia sinensis* (ASV 28) p = 0.021, Rosaceae family (ASV 7) p = 0.021
+
+# Others that look visually different: 23, 30, 15, 17, 5, 6
+
+# Plot all taxa
+trnL_summary <- trnL_melt %>%
+  group_by(binom, Abd_binary) %>%
+  dplyr::summarize(mean = mean(median_FPS), se = sd(median_FPS)/sqrt(length(median_FPS)))
+
+trnL_plot <- ggplot(trnL_melt, aes(x = factor(Abd_binary), y = median_FPS)) +
+  geom_point(position = position_jitter(width = 0.05, height = 0), alpha = 0.5) +
+  geom_errorbar(data = trnL_summary, aes(x=factor(Abd_binary), ymin=mean, ymax=mean),
+                color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = trnL_summary,
+                aes(x=factor(Abd_binary), ymin=mean-se, ymax=mean+se),
+                width=0.25, inherit.aes = F) + 
+  labs(x = "Abundance (presence/absence)", y = "Median FPS (μm)") +
+  scale_y_log10() +
+  theme(strip.text = element_markdown()) +
+  facet_wrap(~binom, nrow = 7)
+
+#ggsave("plots/trnL.png", trnL_plot, height = 12, width = 12)
+
+# PCA
+trnL_spread <- trnL_melt %>%
+  spread(key = binom, value = Abd_binary) %>%
+  as.data.frame()
+
+trnL_spread_data <- trnL_spread[,3:40] %>%
+  select_if(colSums(.) > 0)
+
+trnL_pca <- prcomp(trnL_spread_data, center = TRUE, scale. = TRUE)
+
+adonis2(scale(trnL_spread_data) ~ median_FPS, data = trnL_spread,
+       permutations=9999, method = "eu")
+# R2 = 0.039 p = 0.45
+
+# kdata[kdata$sample %in% rownames(samdf_trnL),] %>% dplyr::select(sample, participant,  day_merge, cluster, median_FPS) %>% write.csv(x=., "plots/ONR_clusters.csv", row.names = F)
+
+# trnL by relabd
+trnL_melt_relabd <- trnL %>%
+  microbiome::transform(transform = "compositional") %>%
+  psmelt() %>%
+  dplyr::select(Sample, participant, day_merge, median_FPS, cluster, OTU, Abundance,
+                superkingdom:species) %>%
+  mutate(binom = case_when(is.na(genus) ~ paste0(family, " family (", OTU, ")"),
+                           !is.na(genus) & is.na(species) ~
+                             paste0("*", genus, " sp.* (", OTU, ")"),
+                           !is.na(species) ~
+                             paste0("*", species, "* (", OTU, ")"))) %>%
+  group_by()
+
+## ALDEx2 KW by cluster
+# kw.test_trnL <- aldex.clr(as.data.frame(t(trnL@otu_table)),
+#                      factor(trnL@sam_data$cluster),
+#                      mc.samples=128, denom="all") %>%
+#   aldex.kw() # all NS
+
+trnL_relabd_plot <- ggplot(trnL_melt_relabd,
+                           aes(x = Abundance, y = median_FPS, color = factor(cluster))) +
+  geom_point(alpha = 0.5) +
+  labs(x = "Relative abundance", y = "Median FPS (μm)", color = "Cluster") +
+  scale_x_log10() +
+  facet_wrap(~binom, scales = "free_x", nrow = 7) +
+  theme(strip.text = element_markdown())
+
+#ggsave("plots/trnL_relabd.png", trnL_relabd_plot, height = 12, width = 12)
+
+# Mantel test - compare particle size distributions and 
+# Make sure tables align (same rows in same order)
+# Calculate distance
+# Calculate mantel statistic
+mantel.onestep <- function(df1, df2) {
+  if(!all(rownames(df1) == rownames(df2))) {
+    df1 <- df1[intersect(rownames(df1), rownames(df2)),]
+    df2 <- df2[intersect(rownames(df1), rownames(df2)),]
+  }
+  
+  mantel.rtest(dist(df1), dist(df2), nrepet = 9999) %>% 
+    .[[5]] %>% return()
+}
+
+fps_curves_trnL <- all_bins_all %>%
+  filter(sample %in% (trnL@sam_data %>% rownames())) %>%
+  spread(key = size, value = mean) %>%
+  column_to_rownames("sample")
+
+fps_curves_trnL_data <- fps_curves_trnL %>%
+  dplyr::select(6:106) %>%
+  select_if(colSums(.) > 0)
+
+# mantel.onestep(as.data.frame(trnL@otu_table), fps_curves_trnL_data) # p = 0.2259
+# mantel.onestep(trnL %>%
+#                  microbiome::transform(transform = "compositional") %>%
+#                  otu_table(),
+#                fps_curves_trnL_data) # p = 0.7724
+# mantel.onestep(as.data.frame(trnL@otu_table) %>%
+#                  mutate_all(function(x) ifelse(x > 3, 1, 0)),
+#                fps_curves_trnL_data) # p = 0.1052
+
+
+```
+## Check out intra-individual variation
+```{r}
+# Select highest and lowest FPS value for each participant
+# Keep pair if > 50% difference
+# Test against diversity
+
+div_compare <- diversity %>%
+  dplyr::select(sample, participant, measure, value, median_FPS) %>%
+  group_by(participant, measure) %>%
+  mutate(end = case_when(median_FPS == max(median_FPS) ~ "max",
+                         median_FPS == min(median_FPS) ~ "min")) %>%
+  filter(!is.na(end))
+
+participants_to_keep <- div_compare %>%
+  filter(measure == "Observed") %>%
+  summarize(ratio = max(median_FPS) / min(median_FPS)) %>%
+  filter(ratio > 1) %>%
+  pull(participant)
+
+div_compare <- div_compare %>%
+  filter(participant %in% participants_to_keep)
+
+div_compare %>%
+  filter(measure == "Observed") %>%
+  lmer(value ~ end + median_FPS + (1 | participant), data = .) %>%
+  summary()
+# If we control for median FPS, p for end < 0.05 - not sure how to interpret
+
+div_compare_summary <- div_compare %>%
+  group_by(end, measure) %>%
+  summarize(mean=mean(value), se = sd(value)/sqrt(length(value)))
+
+div_compare_plot <- ggplot(div_compare, aes(x = end, y = value, group = participant)) +
+  geom_point(aes(size = median_FPS),
+             position = position_jitter(height = 0, width = 0.05), alpha = 0.5) +
+  geom_line() +
+  geom_errorbar(data = div_compare_summary, aes(x=end, ymin=mean, ymax=mean),
+                width=0.5, color = "red", inherit.aes = F) +
+  geom_errorbar(data = div_compare_summary, aes(x=end, ymin=mean-se, ymax=mean+se),
+                width=0.25, inherit.aes = F) + 
+  facet_wrap(~measure, scales = "free_y")
+
+
+all_bins_spread %>% dplyr::select(cohort, sample, participant, day_merge) %>% arrange(cohort, participant, desc(day_merge)) %>% write.csv(x = ., "plots/baseline_samples.csv", row.names = F)
+
+```
+
+
+# Particle size and chewing
+```{r}
+# PCA
+cohort2_bins_spread <- cohort2_all_bins %>%
+  spread(key = size, value = mean)
+
+cohort2_bins_spread_data <- cohort2_bins_spread %>%
+  dplyr::select(`0.01`:`3500`) %>%
+  select_if(colSums(.) > 0)
+
+chewing_fps_pca <- prcomp(cohort2_bins_spread_data, center = TRUE, scale. = TRUE)
+
+# adonis2(scale(cohort2_bins_spread_data) ~ day_merge, data = cohort2_bins_spread,
+#        permutations=9999, method = "eu", strata = cohort2_bins_spread$participant)
+# week: R2 = 0.0017 p = 0.70
+# day_merge: R2 = 0.0035 p = 0.22
+
+## Add median to include size in PCA
+D_for_chew_merge <- cohort2_D %>%
+  filter(D == "50th percentile (median)") %>%
+  mutate(sample = paste0(participant, "_", day_merge)) %>%
+  dplyr::rename(median_FPS = mean)
+  
+cohort2_bins_spread <- cohort2_bins_spread %>%
+  mutate(sample = paste0(participant, "_", day_merge)) %>%
+  left_join(D_for_chew_merge)
+
+fps_pca_plot_chew <- autoplot(chewing_fps_pca, data = cohort2_bins_spread,
+                         colour = "week", size = "median_FPS", alpha = 0.5) +
+  scale_color_brewer(palette = "Set1") +
+  labs(color = "Week", size = "Median FPS") +
+  geom_textbox(data = data.frame(x=0.04, y = 0.45, label = "PERMANOVA<br>*R*<sup>2</sup> = 0.0017<br>*p* = 0.70"),
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"), inherit.aes = F)
+# ggsave("plots/FPS_PCA_chew.png", fps_pca_plot_chew, height = 4, width = 6)
+
+
+
+# Medians
+cohort2_median <- cohort2_D %>%
+  filter(D == "50th percentile (median)") %>%
+  dplyr::rename(median_FPS = mean) %>%
+  dplyr::select(participant, week, day_merge, median_FPS) %>%
+  mutate(day_merge = factor(day_merge, levels = c("-6", "-4", "-2", "1", "3", "5")))
+
+# Linear model
+cohort2_median %>%
+  mutate(day_of_week = case_when(day_merge %in% c(-6, 1) ~ "Mon",
+                                 day_merge %in% c(-4, 3) ~ "Weds",
+                                 day_merge %in% c(-2, 5) ~ "Fri")) %>%
+  mutate(day_of_week = factor(day_of_week, levels = c("Mon", "Weds", "Fri"))) %>%
+  lmer(median_FPS ~ week * day_of_week + (1 | participant), data = .) %>%
+  summary()
+#                            Estimate Std. Error       df t value Pr(>|t|)    
+#(Intercept)                  36.8999     6.6994  93.2217   5.508  3.2e-07 ***
+#weekChewing                   7.8269     6.3482 190.5496   1.233    0.219    
+#day_of_weekWeds               3.1615     6.2539 190.2342   0.506    0.614    
+#day_of_weekFri                5.0411     6.3482 190.5496   0.794    0.428    
+#weekChewing:day_of_weekWeds  -6.0293     8.9474 190.5295  -0.674    0.501    
+#weekChewing:day_of_weekFri    0.7815     9.0617 190.9530   0.086    0.931  
+
+# Summarize and plot
+medians_summary <- cohort2_median %>%
+  group_by(week, day_merge) %>%
+  summarize(mean=mean(median_FPS), se = sd(median_FPS)/sqrt(length(median_FPS)))
+ 
+median_plot <- ggplot(cohort2_median, aes(x = day_merge, y = median_FPS, color = week)) +
+  geom_point(position=position_jitter(0.05), alpha=0.5) +
+  geom_errorbar(data = medians_summary, aes(x=day_merge, ymin=mean, ymax=mean, color=week),
+                width=0.5, inherit.aes = F) +
+  geom_errorbar(data = medians_summary,
+                aes(x=day_merge, ymin=mean-se, ymax=mean+se, color=week),
+                width=0.25, inherit.aes = F) + 
+  labs(x = "Time (days)", y = "Median FPS (μm)", color = "Week") +
+  geom_hline(yintercept = 480, alpha = 0) +
+  scale_color_brewer(palette = "Set1") +
+  scale_y_log10() +
+  theme(legend.position = "none")
+#ggsave("plots/FPS_median_chew_log10.png", median_plot, height = 2.5, width = 4)
+
+# How strong is the individual effect?
+# adonis2(scale(cohort2_bins_spread_data) ~ week + participant, data = cohort2_bins_spread,
+#        permutations=9999, method = "eu")
+# Week R2 = 0.0017, p = 0.58
+# Participant R2 = 0.50, p < 0.0001
+
+median_plot_indiv <- ggplot(cohort2_median, aes(x = day_merge, y = median_FPS)) +
+  geom_point(aes(color = week, group = participant)) +
+  geom_line(aes(color = week, group = participant)) +
+  labs(x = "Time (days)", y = "Median FPS (μm)", color = "Week") +
+  scale_y_log10() +
+  facet_wrap(~participant, ncol = 6) +
+  scale_color_brewer(palette = "Set1") +
+  theme(legend.position = c(0.94, 0), #"none",
+        strip.background = element_blank(),
+        strip.text.x = element_blank())
+#ggsave("chewing_median_plot_indiv.png", median_plot_indiv, height = 6, width = 12)
+
+
+```
+
+## Chewing and SCFA
+```{r}
+chew_scfa <- read.csv("data/EPSOM_all_gc.csv") %>%
+  dplyr::select(ID, week, day_merge, scfa, conc) %>%
+  dplyr::rename(participant = ID, day = day_merge) %>%
+  spread(key = scfa, value = conc) %>%
+  mutate(Total = Acetate + Butyrate + Propionate + Isobutyrate + Isovalerate + Valerate) %>%
+  dplyr::select(participant, day, week,
+                Acetate:Valerate, Total) %>%
+  gather(key = scfa, value = conc, Acetate:Total) %>%
+  mutate(scfa = factor(scfa, levels = c("Total", "Acetate", "Butyrate", "Propionate",
+                                         "Isobutyrate", "Isovalerate", "Valerate"))) %>%
+  mutate(day = factor(day, levels = c("-6", "-4", "-2", "1", "3", "5")))
+
+chew_scfa_summary <- chew_scfa %>%
+  group_by(week, day, scfa) %>%
+  summarize(mean = mean(conc), se = sd(conc)/sqrt(length(conc)))
+
+# Linear models for individual SCFAs
+chew_scfa %>%
+  filter(scfa == "Total") %>%
+  lmer(conc ~ day + (1 | participant), data = .) %>% summary()
+
+# Propionate only one with p < 0.05
+#              Estimate Std. Error        df t value Pr(>|t|)    
+# (Intercept)   9.98783    0.71554 108.29284  13.958   <2e-16 ***
+# day_merge-4   0.04875    0.71789 190.37814   0.068   0.9459    
+# day_merge-2  -0.15200    0.72863 190.76986  -0.209   0.8350    
+# day_merge1   -1.66589    0.72863 190.76986  -2.286   0.0233 *  
+# day_merge3   -1.52687    0.72880 190.84279  -2.095   0.0375 *  
+# day_merge5   -1.09650    0.73445 191.00747  -1.493   0.1371   
+
+# Total days 1 and 3 *
+
+# Linear model by week
+chew_scfa %>% filter(scfa == "Total") %>%
+  lmer(conc ~ week + (1 | participant), data = .) %>% summary()
+# ace 0.0389 *
+# but 0.0999 
+# pro 0.000975 ***
+# ibut 0.529    
+# val 0.0477 *
+# ival 0.493    
+# Total: 0.012 *
+
+chew_scfa_stars <- data.frame(day = c("1", "3"), mean = c(20, 25), scfa = "Propionate", label = "*")
+
+chew_scfa_plot <- ggplot(filter(chew_scfa_summary, scfa != "Total"),
+                         aes(x = day, y = mean, color = week)) +
+  geom_point(data = filter(chew_scfa, scfa != "Total"), aes(x = day, y = conc, color = week),
+             alpha = 0.5, inherit.aes = F, position = position_jitter(width = 0.05, height = 0)) +
+  geom_errorbar(aes(ymin = mean, ymax = mean), width = 0.75) +
+  geom_errorbar(aes(ymin = mean-se, ymax = mean+se), width = 0.375) +
+  labs(x = "Time (days)", y = "SCFA concentration (mM)", color = "Week") +
+  geom_text(data = chew_scfa_stars, aes(x = day, y = mean, label = label), size = 10, inherit.aes = F) +
+  scale_color_brewer(palette = "Set1") +
+  facet_wrap(~factor(scfa,
+                     levels = c("Acetate", "Butyrate", "Propionate",
+                                "Valerate", "Isovalerate", "Isobutyrate")),
+             scales = "free_y")
+
+chew_scfa_total_plot <- ggplot(filter(chew_scfa_summary, scfa == "Total"),
+                         aes(x = day, y = mean, color = week)) +
+  geom_point(data = filter(chew_scfa, scfa == "Total"), aes(x = day, y = conc, color = week),
+             alpha = 0.5, inherit.aes = F, position = position_jitter(width = 0.05, height = 0)) +
+  geom_errorbar(aes(ymin = mean, ymax = mean), width = 0.75) +
+  geom_errorbar(aes(ymin = mean-se, ymax = mean+se), width = 0.375) +
+  labs(x = "Time (days)", y = "Total SCFA\nconcentration (mM)", color = "Week") +
+  scale_color_brewer(palette = "Set1") +
+  annotate(geom = "text", x = c(4,6), y = c(125),
+           label = c("*"), size = 10) 
+
+
+# SCFA proportions
+chew_scfa_prop <- chew_scfa %>%
+  spread(key = scfa, value = conc) %>%
+  mutate(Acetate = Acetate / Total,
+         Butyrate = Butyrate / Total,
+         Propionate = Propionate / Total,
+         Isobutyrate = Isobutyrate / Total,
+         Isovalerate = Isovalerate / Total,
+         Valerate = Valerate / Total) %>%
+  dplyr::select(-Total) %>%
+  gather(key = scfa, value = conc, Acetate:Valerate) %>%
+  mutate(scfa = factor(scfa, levels = c("Total", "Acetate", "Butyrate", "Propionate",
+                                         "Isobutyrate", "Isovalerate", "Valerate")))
+
+
+# Linear models for proportions
+chew_scfa_prop %>%
+  filter(scfa == "Isovalerate") %>%
+  lmer(conc ~ day + (1 | participant), data = .) %>% summary()
+
+# Isobutyrate:
+#              Estimate Std. Error        df t value Pr(>|t|)    
+# (Intercept) 3.112e-02  2.548e-03 8.138e+01  12.212   <2e-16 ***
+# day_merge-4 7.313e-04  2.209e-03 1.898e+02   0.331   0.7410    
+# day_merge-2 9.168e-04  2.243e-03 1.901e+02   0.409   0.6831    
+# day_merge1  4.352e-03  2.243e-03 1.901e+02   1.941   0.0538 .  
+# day_merge3  5.115e-03  2.243e-03 1.901e+02   2.280   0.0237 *  
+# day_merge5  2.643e-03  2.261e-03 1.903e+02   1.169   0.2438     
+# Isovalerate:
+#              Estimate Std. Error        df t value Pr(>|t|)    
+# (Intercept) 3.881e-02  3.568e-03 8.722e+01  10.877   <2e-16 ***
+# day_merge-4 7.096e-04  3.224e-03 1.898e+02   0.220   0.8260    
+# day_merge-2 1.254e-03  3.273e-03 1.901e+02   0.383   0.7020    
+# day_merge1  5.165e-03  3.273e-03 1.901e+02   1.578   0.1162    
+# day_merge3  6.899e-03  3.274e-03 1.902e+02   2.107   0.0364 *  
+# day_merge5  2.575e-03  3.299e-03 1.903e+02   0.780   0.4361    
+
+# Linear model by week
+chew_scfa_prop %>%
+  filter(scfa == "Valerate") %>%
+  lmer(conc ~ week + (1 | participant), data = .) %>% summary()
+# ace 0.902
+# but 0.455
+# pro 0.223
+# ibut 0.00725 ** 
+# val 0.0724 
+# ival 0.0253 *   
+
+
+# Summarize data
+chew_scfa_prop_summary <- chew_scfa_prop %>%
+  group_by(week, day, scfa) %>%
+  summarize(mean = mean(conc), se = sd(conc)/sqrt(length(conc)))
+
+# Plot
+chew_scfa_prop_stars <- data.frame(day = "3", mean = c(0.076, 0.1), scfa = c("Isobutyrate", "Isovalerate"), label = "*")
+
+chew_scfa_prop_plot <- ggplot(chew_scfa_prop_summary, aes(x = day, y = mean, color = week)) +
+  geom_point(data = chew_scfa_prop, aes(x = day, y = conc, color = week),
+             alpha = 0.5, inherit.aes = F,
+             position = position_jitter(width = 0.05, height = 0)) +
+  geom_errorbar(aes(ymin = mean, ymax = mean), width = 0.75) +
+  geom_errorbar(aes(ymin = mean-se, ymax = mean+se), width = 0.375) +
+  labs(x = "Time (days)", y = "Proportional SCFA\nconcentration (mM / mM total)",
+       color = "Week") +
+  geom_text(data = chew_scfa_prop_stars, aes(x = day, y = mean, label = label), size = 10, inherit.aes = F) +
+  scale_color_brewer(palette = "Set1") +
+  geom_hline(data = data.frame(y = c(0.13, 0.095),
+                               scfa = c("Isovalerate", "Isobutyrate")),
+             aes(yintercept = y), alpha = 0) +
+  facet_wrap(~factor(scfa, levels = c("Acetate", "Butyrate", "Propionate",
+                                      "Isobutyrate", "Isovalerate", "Valerate")),
+             scales = "free_y")
+
+```
+
+## ASA24 
+```{r}
+asa24 <- read.csv("data/EPSOM_ASA24.csv")
+
+# Make long data frame
+asa24_long <- asa24 %>%
+  dplyr::select(ID, week, KCAL, PROT, TFAT, CARB, SUGR, FIBE) %>%
+  gather(key = nutrient, value = value, KCAL:FIBE) %>%
+  mutate(nutrient = case_when(nutrient == "KCAL" ~ "Calories (kcal)",
+                              nutrient == "PROT" ~ "Protein (g)",
+                              nutrient == "TFAT" ~ "Fat (g)",
+                              nutrient == "CARB" ~ "Carbohydrates (g)",
+                              nutrient == "FIBE" ~ "Fiber (g)",
+                              nutrient == "SUGR" ~ "Sugar (g)")) %>%
+  mutate(nutrient = factor(nutrient, levels = c("Calories (kcal)", "Protein (g)", "Fat (g)",
+                                                "Carbohydrates (g)", "Fiber (g)", "Sugar (g)")))
+
+# Linear model
+asa24_lm <- data.frame(matrix(ncol = 2, nrow = 0))
+
+for(macro in unique(asa24_long$nutrient)) {
+  pval <- asa24_long %>%
+    filter(nutrient == macro) %>%
+    lmer(value ~ week + (1 | ID), data = .) %>%
+    summary() %>%
+    .$coefficients %>%
+    .[10]
+  
+  asa24_lm <- rbind(asa24_lm, data.frame(nutrient = macro, pval = pval))
+}
+# all NS
+#          nutrient      pval
+#   Calories (kcal) 0.1950541
+#       Protein (g) 0.9069723
+#           Fat (g) 0.1369200
+# Carbohydrates (g) 0.1617123
+#         Sugar (g) 0.1893621
+#         Fiber (g) 0.5079032
+
+# Summarize
+asa24_summary <- asa24_long %>%
+  group_by(week, nutrient) %>%
+  summarize(mean = mean(value), se=sd(value)/sqrt(length(value)))
+ 
+asa24_plot <- ggplot(asa24_long, aes(x = week, y = value, color = week)) +
+  geom_point(position=position_jitter(0.05), alpha=0.5) +
+  geom_errorbar(data = asa24_summary, aes(x=week, ymin=mean, ymax=mean, color=week),
+                width=0.5, inherit.aes = F) +
+  geom_errorbar(data = asa24_summary, aes(x=week, ymin=mean-se, ymax=mean+se, color=week),
+                width=0.25, inherit.aes = F) + 
+  labs(x = "Week", y = "Nutrient intake") +
+  facet_wrap(~nutrient, scales="free_y") +
+  scale_color_brewer(palette = "Set1") +
+  theme(legend.position = "none")
+
+
+
+# Examine proportions
+asa24_cal <- asa24_long %>%
+  filter(nutrient == "Calories (kcal)") %>%
+  mutate(merge_ID = paste0(ID, "_", week)) %>%
+  dplyr::select(-c(ID, week, nutrient)) %>%
+  rename(kcal = value)
+  
+asa24_prop <- asa24_long %>%
+  filter(nutrient != "Calories (kcal)") %>%
+  mutate(merge_ID = paste0(ID, "_", week)) %>%
+  left_join(asa24_cal) %>%
+  dplyr::select(-merge_ID) %>%
+  mutate(prop = value / kcal)
+
+# Linear model
+asa24_prop_lm <- data.frame(matrix(ncol = 2, nrow = 0))
+
+for(macro in unique(asa24_prop$nutrient)) {
+  pval <- asa24_prop %>%
+    filter(nutrient == macro) %>%
+    lmer(prop ~ week + (1 | ID), data = .) %>%
+    summary() %>%
+    .$coefficients %>%
+    .[10]
+  
+  asa24_prop_lm <- rbind(asa24_prop_lm, data.frame(nutrient = macro, pval = pval))
+}
+# all NS
+#          nutrient       pval
+#       Protein (g) 0.09184295
+#           Fat (g) 0.33376831
+# Carbohydrates (g) 0.46949770
+#         Sugar (g) 0.41114094
+#         Fiber (g) 0.67300950
+
+asa24_prop_summary <- asa24_prop %>%
+  group_by(week, nutrient) %>%
+  summarize(mean = mean(prop), se=sd(prop)/sqrt(length(prop)))
+
+asa24_prop_plot <- ggplot(asa24_prop, aes(x = week, y = prop, color = week)) +
+  geom_point(position=position_jitter(0.05), alpha=0.5) +
+  geom_errorbar(data = asa24_prop_summary, aes(x=week, ymin=mean, ymax=mean, color=week),
+                width=0.5, inherit.aes = F) +
+  geom_errorbar(data = asa24_prop_summary, aes(x=week, ymin=mean-se, ymax=mean+se, color=week),
+                width=0.25, inherit.aes = F) + 
+  labs(x = "Week", y = "Nutrient intake (g/kcal)") +
+  facet_wrap(~nutrient, scales="free_y") +
+  scale_color_brewer(palette = "Set1") +
+  theme(legend.position = "none")
+
+```
+
+
+## Chewing and microbiome
+```{r}
+
+ps_epsom <- ps %>%
+  subset_samples(cohort == "Cohort 2") %>%
+  filter_taxa(function(x) sum(x > 0) > 0, TRUE)
+# remove ASVs only in cohort 1 (3673 --> 1832 ASVs)
+
+# Diversity
+# Using unfiltered data here
+diversity <- ps_epsom %>%
+  estimate_richness(split = TRUE, measures=c("Shannon", "Observed")) %>%
+  cbind(samdf[rownames(.),], .) %>%
+  gather(key = measure, value = value, c("Shannon", "Observed")) %>%
+  mutate(day = factor(day, levels = c("-6", "-4", "-2", "1", "3", "5")))
+  
+
+# Linear model by week
+diversity %>%
+  filter(measure == "Observed") %>%
+  lmer(value ~ week + (1 | participant), data = .) %>%
+  summary()
+# Observed: p = 0.534
+# Shannon: p = 0.208
+
+# Linear model by day
+diversity %>%
+  filter(measure == "Observed") %>%
+  lmer(value ~ day + (1 | participant), data = .) %>%
+  summary()
+# Observed: all NS
+# Shannon: all NS
+  
+diversity_summary <- diversity %>%
+  group_by(week, day, measure) %>%
+  summarize(mean=mean(value), se=sd(value)/sqrt(length(value)))
+
+diversity_plot <- ggplot(diversity, aes(x=day, y=value, color=week)) +
+  geom_point(position=position_jitter(0.05), alpha=0.5) +
+  geom_errorbar(data = diversity_summary, aes(x=day, ymin=mean, ymax=mean, color=week),
+                width=0.5, inherit.aes = F) +
+  geom_errorbar(data = diversity_summary, aes(x=day, ymin=mean-se, ymax=mean+se, color=week),
+                width=0.25, inherit.aes = F) + 
+  labs(x = "Time (days)", y = "Alpha diversity", color = "Week") +
+  facet_wrap(~measure, scales="free_y") +
+  scale_color_brewer(palette = "Set1")
+
+#ggsave("plots/EPSOM_diversity.png", diversity_plot, height=3, width = 7)
+
+
+# Ordinate
+ord.nmds.bray2 <- ordinate(ps_epsom, method="NMDS", distance="bray")
+ord_plot2 <- plot_ordination(ps_epsom, ord.nmds.bray2, color="week", title="Bray NMDS") +
+  scale_color_brewer(palette = "Set1") +
+  labs(color = "Week") + theme(plot.title = element_blank()) +
+    geom_textbox(data = data.frame(x=-1, y = 0.8, label = "PERMANOVA<br>*R*<sup>2</sup> = 0.0015<br>*p* = 0.41"),
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"), inherit.aes = F)
+
+## Plot by individual
+# ord_plot2 + facet_wrap(~ID, scales = "free")
+
+# PERMANOVA
+samdf <- ps_epsom@sam_data %>% as.matrix() %>% as.data.frame()
+#bray <- distance(ps_epsom, method = "bray") %>% as.matrix()
+#adonis2(formula = bray ~ day,  data = samdf[rownames(bray),],
+#        strata=samdf[rownames(bray),]$participant, permutations=9999, method = "bray")
+#           Df SumOfSqs      R2     F Pr(>F)
+# week       1    0.081 0.00147 0.345 0.4103
+# Residual 234   54.765 0.99853             
+# Total    235   54.846 1.00000  
+
+```
+
+## Chewing and microbiome - beta-dissimilarity
+```{r}
+# Base dissimilarity on first sample collected
+## VI62 does not have a Baseline M sample
+first_sample <- samdf %>%
+  filter(day == -6 |
+           (participant == "VI62" & day == -4)) %>%
+  dplyr::select(participant)
+
+bray_select <- samdf %>%
+  filter(!is.na(day) &
+           !(rownames(.) %in% rownames(first_sample))) %>%
+  dplyr::select(participant, week, day) %>%
+  mutate(dist = NA,
+         day = factor(day, levels = c("-6", "-4", "-2", "1", "3", "5")))
+
+for(r in 1:nrow(bray_select)) {
+  
+  # Find ID of first sample of same participant
+  relevant_first_sample <- first_sample %>%
+    filter(participant == bray_select$participant[r]) %>%
+    rownames()
+  
+  # On bray dataframe, get distance between current sample and relevant first sample
+  bray_select$dist[r] <- bray[rownames(bray_select)[r], relevant_first_sample]
+  
+}
+
+# Ask: is the difference from baseline1 to chewing samples > difference from baseline1 to baseline2?
+# Linear model
+bray_select %>%
+  lmer(dist ~ day + (1 | participant), data = .) %>%
+  summary()
+# Week: p = 0.0263 * 
+
+# day_merge, day -4 as intercept
+#              Estimate Std. Error        df t value Pr(>|t|)    
+# (Intercept)   0.30285    0.01817 151.47657  16.669  < 2e-16 ***
+# day_merge-2   0.03999    0.02224 151.30886   1.798  0.07418 .  
+# day_merge1    0.03173    0.02224 151.30886   1.426  0.15584    
+# day_merge3    0.05989    0.02225 151.45292   2.692  0.00790 ** 
+# day_merge5    0.06649    0.02242 151.83009   2.966  0.00351 ** 
+
+
+
+# Summary statistics
+bray_summary <- bray_select %>%
+  group_by(week, day) %>%
+  summarize(mean = mean(dist), se = sd(dist)/sqrt(length(dist)), n = length(dist))
+
+bray_plot <- ggplot(bray_select, aes(x = day, y = dist, color = week)) +
+  geom_point(position=position_jitter(0.05), alpha=0.5) +
+  geom_errorbar(data = bray_summary, aes(x=day, ymin=mean, ymax=mean, color=week),
+                width=0.5, inherit.aes = F) +
+  geom_errorbar(data = bray_summary, aes(x=day, ymin=mean-se, ymax=mean+se, color=week),
+                width=0.25, inherit.aes = F) + 
+  annotate(geom = "text", x = c(4, 5), y = c(0.82, 0.77), label = c("**", "**"), size=10) +
+  labs(x = "Time (days)", y = "Bray-Curtis dissimilarity\nfrom individual baseline (D-6)", color = "Week") +
+  geom_hline(yintercept = 0.9, alpha = 0) +
+  scale_color_brewer(palette = "Set1")
+
+# To better consider drift over time, let's instead use F1 as our comparison point
+F1_sample <- samdf %>%
+  filter(day == -2 |
+           (participant %in% c("CI54", "GV14") & day == -4)) %>%
+  dplyr::select(participant)
+
+bray_select2 <- samdf %>%
+  filter(!is.na(day) &
+           !(rownames(.) %in% rownames(F1_sample))) %>%
+  dplyr::select(participant, week, day) %>%
+  mutate(dist = NA,
+         day = factor(day, levels = c("-6", "-4", "-2", "1", "3", "5")))
+
+for(r in 1:nrow(bray_select2)) {
+  
+  # Find ID of first sample of same participant
+  relevant_first_sample <- F1_sample %>%
+    filter(participant == bray_select2$participant[r]) %>%
+    rownames()
+  
+  # On bray dataframe, get distance between current sample and relevant first sample
+  bray_select2$dist[r] <- bray[rownames(bray_select2)[r], relevant_first_sample]
+  
+}
+
+bray_select2 %>%
+  lmer(dist ~ week + (1 | participant), data = .) %>%
+  summary()
+# week: p = 0.0133 *
+
+# day_merge with day -6 as intercept
+#              Estimate Std. Error        df t value Pr(>|t|)    
+# (Intercept) 3.378e-01  2.242e-02 9.208e+01  15.070   <2e-16 ***
+# day_merge-4 1.166e-03  2.194e-02 1.500e+02   0.053   0.9577    
+# day_merge1  2.676e-02  2.194e-02 1.500e+02   1.220   0.2245    
+# day_merge3  5.462e-02  2.195e-02 1.501e+02   2.488   0.0139 *  
+# day_merge5  2.705e-02  2.213e-02 1.503e+02   1.223   0.2234   
+
+bray_summary2 <- bray_select2 %>%
+  group_by(week, day) %>%
+  summarize(mean = mean(dist), se = sd(dist)/sqrt(length(dist)), n = length(dist))
+
+
+bray_plot2 <- ggplot(bray_select2, aes(x = day, y = dist, color = week)) +
+  geom_point(position=position_jitter(0.05), alpha=0.5) +
+  geom_errorbar(data = bray_summary2, aes(x=day, ymin=mean, ymax=mean, color=week),
+                width=0.5, inherit.aes = F) +
+  geom_errorbar(data = bray_summary2, aes(x=day, ymin=mean-se, ymax=mean+se, color=week),
+                width=0.25, inherit.aes = F) + 
+  annotate(geom = "text", x = c(4), y = c(0.8), label = c("*"), size=10) +
+  labs(x = "Time (days)", y = "Bray-Curtis dissimilarity\nfrom individual baseline (D-2)", color = "Week") +
+  geom_hline(yintercept = 0.9, alpha = 0) +
+  scale_color_brewer(palette = "Set1")
+
+
+
+# Change from previous sample could also be interesting...
+bray_change <- bray_select %>%
+  mutate(dist = NA)
+
+for(r in 1:nrow(bray_change)) {
+  
+  # Find ID of previous sample
+  previous_sample <- samdf %>%
+    filter(participant == bray_change$participant[r]) %>%
+    mutate(day = as.numeric(as.character(day))) %>%
+    filter(day < as.numeric(as.character(bray_change$day[r]))) %>%
+    filter(day == max(day)) %>%
+    rownames()
+  
+  # On bray dataframe, get distance between current sample and relevant comparison sample
+  bray_change$dist[r] <- bray[rownames(bray_change)[r], previous_sample]
+  
+}
+
+bray_change %>%
+  lmer(dist ~ day + (1 | participant), data = .) %>%
+  summary()
+
+# week: p = 0.172 
+#              Estimate Std. Error        df t value Pr(>|t|)    
+# (Intercept)   0.30337    0.02043 151.61542  14.846   <2e-16 ***
+# day_merge-2   0.03771    0.02500 151.61594   1.508   0.1335    
+# day_merge1    0.06371    0.02500 151.61594   2.548   0.0118 *  
+# day_merge3    0.01705    0.02501 151.75912   0.682   0.4964    
+# day_merge5    0.04189    0.02520 152.13325   1.662   0.0985 .  
+
+bray_change_summary <- bray_change %>%
+  group_by(week, day) %>%
+  summarize(mean = mean(dist), se = sd(dist)/sqrt(length(dist)), n = length(dist))
+
+
+bray_change_plot <- ggplot(bray_change, aes(x = day, y = dist, color = week)) +
+  geom_point(position=position_jitter(0.05), alpha=0.5) +
+  geom_errorbar(data = bray_change_summary, aes(x=day, ymin=mean, ymax=mean, color=week),
+                width=0.5, inherit.aes = F) +
+  geom_errorbar(data = bray_change_summary, aes(x=day, ymin=mean-se, ymax=mean+se, color=week),
+                width=0.25, inherit.aes = F) + 
+  annotate(geom = "text", x = c(3), y = c(0.8), label = c("*"), size=10) +
+  labs(x = "Time (days)", y = "Bray-Curtis dissimilarity\nfrom previous sample", color = "Week") +
+  geom_hline(yintercept = 0.9, alpha = 0) +
+  scale_color_brewer(palette = "Set1")
+#ggsave("plots/bray_from_previous_day.png", bray_change_plot, height = 3, width = 5.5)
+
+
+```
+
+
+## Chewing exit survey
+```{r}
+intro <- read.csv("data/EPSOM_demographics.csv") %>%
+  dplyr::select(1:4)
+exit <- read.csv("data/EPSOMParticleSizePro-ExitSurvey_DATA_LABELS_2022-08-03_1501.csv") %>%
+  left_join(intro)
+exit_questions <- read.csv("data/epsom_exit_questions.csv")
+
+# Change in chewing
+exit_change <- exit %>%
+  dplyr::select(participant, Q4:Q6, typical_chew_thoroughness:typical_meal_duration) %>%
+  gather(key = question, value = response, Q4:typical_meal_duration) %>%
+  mutate(week = case_when(question %in% c("Q4", "Q5", "Q6") ~ "Chewing",
+                          T ~ "Baseline")) %>%
+  mutate(question = case_when(question == "Q4" ~ "typical_chew_thoroughness",
+                              question == "Q5" ~ "typical_number_chews",
+                              question == "Q6" ~ "typical_meal_duration",
+                              T ~ question)) %>%
+  mutate(question = case_when(question == "typical_chew_thoroughness" ~
+                                "Chewing thoroughness (1-10)",
+                              question == "typical_number_chews" ~ "Chews per bite (#)",
+                              question == "typical_meal_duration" ~ "Meal duration (min)"))
+
+exit_change_summary <- exit_change %>%
+  group_by(question, week) %>%
+  summarize(mean = mean(response), se = sd(response)/sqrt(length(response)))
+
+exit_change %>%
+  filter(question == "Meal duration (min)") %>%
+  lmer(response ~ week + (1 | participant), data = .) %>%
+  summary()
+# thoroughness p = 2.99e-15 ***
+# number chews p = 9.28e-16 ***
+# meal duration p = 3.10e-07 ***
+
+exit_change_stars <- data.frame(question = c("Chewing thoroughness (1-10)",
+                                             "Chews per bite (#)",
+                                             "Meal duration (min)"),
+                                label = "***",
+                                x = 1.5,
+                                y = c(9.5, 40, 63))
+
+exit_change_plot <- ggplot(exit_change, aes(x = week, y = response, color = week)) +
+  geom_point(position=position_jitter(width = 0.1, height = 0.05), alpha=0.5) +
+  geom_errorbar(data = exit_change_summary, aes(x=week, ymin=mean, ymax=mean, color=week),
+                width=0.5, inherit.aes = F) +
+  geom_errorbar(data = exit_change_summary,
+                aes(x=week, ymin=mean-se, ymax=mean+se, color=week),
+                width=0.25, inherit.aes = F) + 
+  facet_wrap(~question, scales = "free_y") +
+  geom_text(data = exit_change_stars, aes(x=x, y=y, label = label),
+            inherit.aes = F, size = 10) +
+  labs(x = "Week", color = "Week", y = "Response") +
+  scale_color_brewer(palette = "Set1")
+
+exit_likert <- rbind(as.data.frame(table(exit$Q13)),
+                     as.data.frame(table(exit$Q14)),
+                     as.data.frame(table(exit$Q15))) %>%
+  mutate(question = c(rep(exit_questions[13, "long"], 5),
+                      rep(exit_questions[14, "long"], 5),
+                      rep(exit_questions[15, "long"], 3))) %>%
+  mutate(Var1 = factor(Var1, levels = c("greatly increased", "increased",
+                                        "did not affect", "reduced", "greatly reduced")))
+
+exit_plot <- ggplot(exit_likert, aes(x=Var1, y=Freq)) +
+  geom_bar(stat="identity") +
+  facet_wrap(~question, ncol = 1) +
+  labs(x = "Response", y= "Number of participants")
+
+# Bristol and FPS
+chewing_averages <- cohort2_median %>%
+  filter(week == "Chewing") %>%
+  group_by(participant) %>%
+  summarize(mean = mean(median_FPS))
+
+exit_plus_FPS <- exit %>%
+  left_join(chewing_averages) %>%
+  mutate(Q10 = factor(Q10))
+#  mutate(Q10 = case_when(Q10 %in% 1:2 ~ "1 to 2",
+#                         Q10 %in% 3:4 ~ "3 to 4",
+#                         Q10 %in% 5:7 ~ "5 to 7"))
+
+cor.test(exit_plus_FPS$Q10, exit_plus_FPS$mean, method = "spearman")
+
+exit_plus_FPS %>%
+  #filter(Q10 != "3 to 4") %>%
+  lm(mean ~ Q10, data = .) %>%
+  #aov(mean ~ Q10, data = .) %>%
+  summary()
+
+exit_plus_FPS_summary <- exit_plus_FPS %>%
+  group_by(Q10) %>%
+  summarize(mean2 = mean(mean), se = sd(mean)/sqrt(length(mean)))
+
+chewing_bristol_plot <- exit_plus_FPS %>%
+  ggplot(aes(x = Q10, y = mean)) +
+  geom_point(position = position_jitter(height = 0, width = 0.05), alpha = 0.5) +
+  geom_errorbar(data = exit_plus_FPS_summary, aes(x=Q10, ymin=mean2, ymax=mean2),
+                color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = exit_plus_FPS_summary, aes(x=Q10, ymin=mean2-se, ymax=mean2+se),
+                width=0.25, inherit.aes = F) + 
+  #geom_smooth(method = lm) +
+  labs(x = "Typical Bristol score during chewing week", y = "Median FPS (μm)") +
+  scale_y_log10()
+#ggsave("plots/chewing_bristol_plot.png", chewing_bristol_plot, height = 3, width = 4)
+
+
+```
+
+
+# Patch figures together
+```{r}
+# Figure 1 - particle size characterization
+fig1_mid <- plot_grid(all_curves_plot, k_clust, ncol = 2,
+                         labels = c("B", "C"), label_fontface = "plain")
+
+fig1_bottom <- plot_grid(k_median_plot, k_curves_summary_plot, ncol = 2,
+                         labels = c("D", "E"), label_fontface = "plain",
+                         rel_widths = c(2, 3))
+
+fig1_patch <- plot_grid(D_baseline_plot, fig1_mid, fig1_bottom, ncol = 1,
+                        labels = c("A", "", ""), label_fontface = "plain",
+                        rel_heights = c(1.7, 1, 1))
+#ggsave("plots/fig1.png", fig1_patch, height = 10, width = 8)
+
+# Figure S3 - k-means clustering and ternary plot
+figS2_patch <- plot_grid(fps_pca_plot, sos_plot, gap_stat, k_upset, NULL, NULL, ncol = 2,
+                         labels = c("A", "B", "C", "D", "E", ""), label_fontface = "plain")
+#ggsave("plots/figS2.png", figS2_patch, height = 10, width = 8)
+
+#ggsave("plots/figS2_soil.png", soil_plot, height = 5, width = 5)
+
+
+# Figure 2 - FPS relationship to microbiome
+fig2_left <- plot_grid(diversity_summary_plot +
+                         theme(legend.position = c(0.08, 0.155),
+                               legend.background = element_rect(fill = "transparent",
+                                                         color = "transparent")),
+                       k_div_plot, nmds_cluster_plot,
+                       ncol = 1, labels = c("A", "B", "C"), label_fontface = "plain")
+fig2_patch <- plot_grid(fig2_left, tax_plot +
+                          theme(legend.position = c(0.2, 0.575),
+                                legend.background = element_rect(fill = "transparent",
+                                                                 color = "transparent")),
+                        ncol = 2, rel_widths = c(4, 2.1),
+                        labels = c("", "D"), label_fontface = "plain")
+
+#ggsave("plots/fig2.png", fig2_patch, height = 10, width = 10)
+
+
+# Figure S4 - 16S FPS and diversity, focus on read depth
+figS4_top <- plot_grid(diversity_summary_reads_plot, diversity_FPS_reads_plot +
+                         theme(legend.position = "none"),
+                       nrow = 1, rel_widths = c(2, 1),
+                       labels = c("A", "B"), label_fontface = "plain")
+
+figS4_mid <- plot_grid(diversity_pca_obs, diversity_pca_sha,
+                       nrow = 1, 
+                       labels = c("C", "D"), label_fontface = "plain")
+
+figS4_patch <- plot_grid(figS4_top, figS4_mid,
+                          ncol = 1)
+
+#ggsave("plots/figS4.png", figS4_patch, height = 10, width = 12)
+
+# Fig. S5 - 16S composition analysis
+
+figS5_top <- plot_grid(nmds_plot, volcano, nrow = 1, rel_widths = c(3, 2),
+                       labels = c("A", "B"), label_fontface = "plain")
+
+figS5_patch <- plot_grid(figS5_top, signif_taxa_plot,
+                          ncol = 1, rel_heights = c(2, 3),
+                          labels = c("", "C"), label_fontface = "plain")
+#ggsave("plots/figS5.png", figS5_patch, height = 8, width = 10)
+
+
+# Figure 3 - SCFA and diet
+fig3_patch <- plot_grid(scfa_total_plot, scfa_indiv_plot,
+                        ncol = 1, rel_heights = c(2, 3),
+                        labels = c("A", "B"), label_fontface = "plain")
+
+#ggsave("plots/fig3.png", fig3_patch, height = 8.4, width = 6)
+
+# Figure S6 - FPS relationship to demographics, SCFA
+# Add in:
+
+
+figS6_corner <- plot_grid(demo_freq_plot, demo_bristol_plot,
+                          ncol = 1, 
+                          labels = c("B", "C"), label_fontface = "plain")
+
+figS6_bottom <- plot_grid(figS6_corner, chewing_bristol_plot +
+                            theme(legend.position = "bottom"),
+                          nrow = 1, 
+                          labels = c("", "D"), label_fontface = "plain")
+
+figS6_patch <- plot_grid(scfa_prop_plot, figS6_bottom,
+                         ncol = 1, 
+                         labels = c("A", ""), label_fontface = "plain")
+
+#ggsave("plots/figS6.png", figS6_patch, height = 9, width = 8)
+
+# Supplementary fig on diet
+
+
+# Figure 4 - Chewing intervention
+fig4_Lcorner <- plot_grid(median_plot +
+                          theme(legend.position = "none"),
+                         chew_scfa_total_plot +
+                          theme(legend.position = "none"),
+                         ncol = 1,
+                         labels = c("B", "C"), label_fontface = "plain")
+
+fig4_Rcorner <- plot_grid(ord_plot2 +
+                          theme(legend.position = "none"),
+                         get_legend(ord_plot2),
+                         ncol = 1, rel_heights = c(3, 1.3),
+                         labels = c("D", ""), label_fontface = "plain")
+
+fig4_bottom <- plot_grid(fig4_Lcorner, fig4_Rcorner, 
+                         nrow = 1, rel_widths = c(3, 2.3),
+                         labels = c("", ""), label_fontface = "plain")
+
+fig4_patch <- plot_grid(exit_change_plot +
+                          theme(legend.position = "none"),
+                        fig4_bottom,
+                        ncol = 1, rel_heights = c(1.75, 3),
+                        labels = c("A", "", ""), label_fontface = "plain")
+
+#ggsave("plots/fig4.png", fig4_patch, height = 8, width = 7)
+
+# Figure S7 - additional data from chewing intervention - microbiome and SCFA
+figS7_top <- plot_grid(fps_pca_plot_chew, diversity_plot + theme(legend.position = "none"),
+                       nrow = 1, rel_widths = c(1.7, 2),
+                       labels = c("A", "B"), label_fontface = "plain")
+
+figS7_mid <- plot_grid(bray_plot + theme(legend.position = "none"),
+                       bray_plot2 + theme(legend.position = "none"),
+                       bray_change_plot + theme(legend.position = "none"),
+                       nrow = 1,
+                       labels = c("C", "D", "E"), label_fontface = "plain")
+
+figS7_patch <- plot_grid(figS7_top, figS7_mid,
+                         chew_scfa_plot + theme(legend.position = "none"),
+                         chew_scfa_prop_plot + theme(legend.position = "none"),
+                         nrow = 4,
+                         labels = c("", "", "F", "G"), label_fontface = "plain")
+
+#ggsave("plots/figS7.png", figS7_patch, height = 12, width = 10)
+
+# Fig. S8 - chewing intervention ASA24 and exit survey
+figS8_left <- plot_grid(asa24_plot, asa24_prop_plot,
+                        ncol = 1,
+                        labels = c("A", "B"), label_fontface = "plain")
+
+figS8_patch <- plot_grid(figS8_left, exit_plot,
+                         nrow = 1, rel_widths = c(2, 2),
+                         labels = c("", "C"), label_fontface = "plain")
+
+#ggsave("plots/figS8.png", figS8_patch, height = 6, width = 10)
+
+# Fig S10 - diet and FPS
+
+figS11_patch <- plot_grid(macro_corr_plot, diet_macro_pca_plot,
+                         ncol = 1, rel_heights = c(2.5, 1),
+                         labels = c("A", "B"), label_fontface = "plain")
+
+#ggsave("plots/figS11.png", figS11_patch, height = 9, width = 6.2)
+
+
+#ggsave("plots/median_plot_indiv.png", median_plot_indiv, height = 6, width = 7)
+
+
+```
+

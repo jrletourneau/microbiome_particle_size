@@ -1,0 +1,272 @@
+---
+title: "Figure in vitro expts on substrate particle size"
+output: html_notebook
+---
+
+# Load libraries
+```{r}
+# Plotting
+library(tidyverse)
+library(RColorBrewer)
+library(patchwork)
+
+# Stats
+library(lme4)
+library(lmerTest)
+
+# Set ggplot theme
+theme_set(theme_bw() +
+            theme(axis.text = element_text(color = "black"),
+                  axis.ticks = element_line(color = "black"),
+                  plot.title = element_text(hjust = 0.5)))
+
+# Set LOD for GC
+set_LOD <- function(df, scfa_name = "Name", amt_name = "Amount") {
+  compounds <- unique(df[,scfa_name])
+  
+  df <- spread(df, key = scfa_name, value = amt_name)
+  
+  for(compound in compounds) {
+    min <- min(df[,compound], 0.1, na.rm = T)
+    df[is.na(df[,compound]), compound] <- min
+  }
+  
+  df <- gather(df, key = "scfa", value = "conc", (ncol(df)-length(compounds)+1):ncol(df))
+  
+  return(df)
+}
+
+
+```
+
+# Load data
+```{r}
+# Wheat bran
+## pH
+bran_pH <- read.csv("data/in_vitro/ube_pH.csv") %>%
+  mutate(size2 = factor(size2, levels=c("Control", "<53", "53-250", "250-500", "500-1000", "1000-2000")))
+
+bran_pH_summary <- bran_pH %>%
+  group_by(donor, size2) %>% 
+  dplyr::summarize(mean = mean(pH), se = sd(pH)/sqrt(length(pH))) # technical replicates
+
+bran_pH_summary2 <- bran_pH_summary %>%
+  group_by(size2) %>% 
+  dplyr::summarize(mean2 = mean(mean), se = sd(mean)/sqrt(length(mean))) # biological replicates
+
+## GC
+bran_gc <- read.csv("data/in_vitro/ube_gc.csv") %>%
+  set_LOD() %>%
+  mutate(size = factor(size, levels=c("Control", "<53", "53-250", "250-500", "500-1000", "1000-2000")),
+         scfa = factor(scfa, levels = c("Acetate", "Butyrate", "Propionate",
+                                        "Isobutyrate", "Isovalerate"))) %>%
+  mutate(conc = conc * 10) # dilution factor used in prep
+
+bran_gc_total <- bran_gc %>%
+  group_by(donor, rep, size) %>% 
+  dplyr::summarize(sum = sum(conc))
+
+### Average technical replicates
+bran_gc_summary <- bran_gc %>%
+  group_by(donor, size, scfa) %>% 
+  dplyr::summarize(mean = mean(conc), se = sd(conc)/sqrt(length(conc)))
+
+bran_gc_total_summary <- bran_gc_total %>%
+  group_by(donor, size) %>% 
+  dplyr::summarize(mean = mean(sum), se = sd(sum)/sqrt(length(sum)))
+
+### Average biological replicates
+bran_gc_summary2 <- bran_gc_summary %>%
+  group_by(size, scfa) %>% 
+  dplyr::summarize(mean2 = mean(mean), se = sd(mean)/sqrt(length(mean)))
+
+bran_gc_total_summary2 <- bran_gc_total_summary %>%
+  group_by(size) %>% 
+  dplyr::summarize(mean2 = mean(mean), se = sd(mean)/sqrt(length(mean)))
+
+
+# Glass beads (density)
+glass_metadata <- read.csv("data/in_vitro/yuca_labels.csv") %>%
+  mutate(size = case_when(size == "100 ?m" ~ "100 μm",
+                          size == "1000 ?m" ~ "1000 μm",
+                          size == "Control" ~ "Control"))
+
+glass <- read.csv("data/in_vitro/yuca_gc.csv") %>%
+  set_LOD() %>%
+  left_join(glass_metadata, by = c("Sample.Name" = "rand")) %>%
+  relocate(donor:rep, .after = Sample.Name) %>%
+  mutate(size = factor(size, levels=c("Control", "100 μm", "1000 μm")),
+         scfa = factor(scfa, levels = c("Acetate", "Butyrate", "Propionate",
+                                        "Isobutyrate", "Isovalerate", "Valerate")),
+         amount = factor(amount, levels = c("0", "10", "50", "100", "500"))) %>%
+  mutate(conc = conc * 10)
+
+glass_gc_total <- glass %>%
+  group_by(donor, size, amount, rep) %>% 
+  dplyr::summarize(sum = sum(conc))
+
+### Average technical replicates
+glass_gc_summary <- glass %>%
+  group_by(donor, size, amount, scfa) %>% 
+  dplyr::summarize(mean = mean(conc), se = sd(conc)/sqrt(length(conc)))
+
+glass_gc_total_summary <- glass_gc_total %>%
+  group_by(donor, size, amount) %>% 
+  dplyr::summarize(mean = mean(sum), se = sd(sum)/sqrt(length(sum)))
+
+### Average biological replicates
+glass_gc_summary2 <- glass_gc_summary %>%
+  group_by(size, amount, scfa) %>% 
+  dplyr::summarize(mean2 = mean(mean), se = sd(mean)/sqrt(length(mean)))
+
+glass_gc_total_summary2 <- glass_gc_total_summary %>%
+  group_by(size, amount) %>% 
+  dplyr::summarize(mean2 = mean(mean), se = sd(mean)/sqrt(length(mean)))
+
+
+
+```
+
+# Stats
+```{r}
+# Bran pH
+bran_pH %>%
+  mutate(size2 = factor(size2, levels=c("1000-2000", "Control", "<53", "53-250", "250-500", "500-1000"))) %>%
+  lmer(pH ~ size2 + (1 | donor), .) %>%
+  summary()
+# size2Control   0.175333   0.041234 80.000000   4.252 5.70e-05 ***
+# size2<53      -0.190667   0.041234 80.000000  -4.624 1.43e-05 ***
+# size253-250   -0.050000   0.041234 80.000000  -1.213    0.229    
+# size2250-500  -0.016000   0.041234 80.000000  -0.388    0.699    
+# size2500-1000 -0.006667   0.041234 80.000000  -0.162    0.872    
+
+# Bran GC
+## Individuals
+bran_gc %>%
+  mutate(size = factor(size, levels=c("1000-2000", "Control", "<53", "53-250", "250-500", "500-1000"))) %>%
+  filter(scfa == "Isovalerate") %>%
+  lmer(conc ~ size + (1 | donor), .) %>%
+  summary()
+# Ace, But, Pro: Control ***, <53 ***
+# Ibut: <53 **
+# Ival: <53 ***
+
+
+## Total
+bran_gc_total %>%
+  mutate(size = factor(size, levels=c("1000-2000", "Control", "<53", "53-250", "250-500", "500-1000"))) %>%
+  lmer(sum ~ size + (1 | donor), .) %>%
+  summary()
+# (Intercept)  17.25867    2.35843  4.71758   7.318 0.000955 ***
+# sizeControl  -8.28733    1.02928 80.00000  -8.052 6.41e-12 ***
+# size<53       7.40533    1.02928 80.00000   7.195 2.99e-10 ***
+# size53-250    1.86067    1.02928 80.00000   1.808 0.074405 .  
+# size250-500   0.85800    1.02928 80.00000   0.834 0.406990    
+# size500-1000 -0.02667    1.02928 80.00000  -0.026 0.979395    
+
+# Glass GC total
+glass_gc_total %>%
+  mutate(amount = as.numeric(as.character(amount))) %>%
+  filter(size != "Control") %>%
+  lmer(sum ~ size*amount + (1|donor), data = .) %>% 
+  summary()
+#                   Estimate Std. Error         df t value Pr(>|t|)    
+# (Intercept)      2.876e+01  2.247e+00  4.228e+00  12.798 0.000154 ***
+# size1000        -2.045e+00  6.249e-01  1.120e+02  -3.273 0.001416 ** 
+# amount           6.833e-03  1.725e-03  1.120e+02   3.962 0.000131 ***
+# size1000:amount  5.167e-04  2.439e-03  1.120e+02   0.212 0.832629    
+
+```
+
+# Plot
+```{r}
+# Bran plot pH
+bran_pH_plot <- ggplot(data=bran_pH, aes(x=size2, y=pH, color = donor, group = donor)) +
+  geom_point(alpha = 0.5, position = position_jitter(height = 0, width = 0.05)) +
+  geom_line(data = bran_pH_summary, aes(x=size2, y=mean, color = donor, group = donor)) +
+  geom_errorbar(data = bran_pH_summary2, aes(x = size2, ymin=mean2, ymax=mean2),
+                width=0.5, color="red", inherit.aes = F) +
+  geom_errorbar(data = bran_pH_summary2, aes(x = size2, ymin=mean2-se, ymax=mean2+se),
+                width=0.25, inherit.aes = F) +
+  annotate(geom = "text", x = c(1,2), y = c(7.06, 6.95), label = "***", size = 10) +
+  geom_hline(yintercept = 7.12, alpha = 0) +
+  labs(x = "Wheat bran particle size (μm)", y = "pH", color = "Donor")
+
+# Bran plot GC
+## Individual
+bran_gc_indiv_stars <- data.frame(scfa = c(rep(c("Acetate", "Butyrate", "Propionate"), each=2),
+                                           "Isobutyrate", "Isovalerate"),
+                                  size = c(rep(c("Control", "<53"), 3), rep("<53", 2)),
+                                  conc = c(10, 35, 2.25, 3.85, 5, 10.5, 1.3, 1.55),
+                                  label = c(rep("***", 6), "**", "***"))
+
+bran_gc_indiv_hlines <- data.frame(scfa = c("Acetate", "Butyrate", "Propionate",
+                                           "Isobutyrate", "Isovalerate"),
+                                  conc = c(37, 4, 11, 1.36, 1.6))
+
+bran_gc_indiv_plot <- ggplot(data=bran_gc, aes(x=size, y=conc, color = donor, group = donor)) +
+  geom_point(alpha = 0.5, position = position_jitter(height = 0, width = 0.05)) +
+  geom_line(data = bran_gc_summary, aes(x=size, y=mean, color = donor, group = donor)) +
+  geom_errorbar(data = bran_gc_summary2, aes(x = size, ymin=mean2, ymax=mean2),
+                width=0.5, color="red", inherit.aes = F) +
+  geom_errorbar(data = bran_gc_summary2, aes(x = size, ymin=mean2-se, ymax=mean2+se),
+                width=0.25, inherit.aes = F) +
+  geom_text(data = bran_gc_indiv_stars, aes(x = size, y = conc, label = label), size = 7, inherit.aes = F) +
+  geom_hline(data = bran_gc_indiv_hlines, aes(yintercept = conc), alpha = 0, inherit.aes = F) +
+  labs(x = "Wheat bran particle size (μm)", y = "Total SCFA concentration (mM)", color = "Donor") +
+  facet_wrap(~scfa, scales = "free_y") +
+  theme(axis.text.x = element_text(angle = -45, hjust=0))
+
+## Total
+bran_gc_total_plot <- ggplot(data=bran_gc_total, aes(x=size, y=sum, color = donor, group = donor)) +
+  geom_point(alpha = 0.5, position = position_jitter(height = 0, width = 0.05)) +
+  geom_line(data = bran_gc_total_summary, aes(x=size, y=mean, color = donor, group = donor)) +
+  geom_errorbar(data = bran_gc_total_summary2, aes(x = size, ymin=mean2, ymax=mean2),
+                width=0.5, color="red", inherit.aes = F) +
+  geom_errorbar(data = bran_gc_total_summary2, aes(x = size, ymin=mean2-se, ymax=mean2+se),
+                width=0.25, inherit.aes = F) +
+  annotate(geom = "text", x = c(1,2), y = c(15, 39), label = "***", size = 10) +
+  geom_hline(yintercept = 41, alpha = 0) +
+  labs(x = "Wheat bran particle size (μm)", y = "Total SCFA concentration (mM)", color = "Donor")
+
+# Glass
+## Indivs
+glass_gc_indiv_plot <- ggplot(data=glass[glass$scfa == "Acetate",], aes(x=amount, y=conc, color = donor, group = donor)) +
+  geom_point(alpha = 0.5, position = position_jitter(height = 0, width = 0.05)) +
+  geom_line(data = glass_gc_summary[glass_gc_summary$scfa == "Acetate",], aes(x=amount, y=mean, color = donor, group = donor)) +
+  geom_errorbar(data = glass_gc_summary2[glass_gc_summary2$scfa == "Acetate",], aes(x = amount, ymin=mean2, ymax=mean2),
+                width=0.5, color="red", inherit.aes = F) +
+  geom_errorbar(data = glass_gc_summary2[glass_gc_summary2$scfa == "Acetate",], aes(x = amount, ymin=mean2-se, ymax=mean2+se),
+                width=0.25, inherit.aes = F) +
+  #geom_text(data = bran_gc_indiv_stars, aes(x = size, y = conc, label = label), size = 7, inherit.aes = F) +
+  #geom_hline(data = bran_gc_indiv_hlines, aes(yintercept = conc), alpha = 0, inherit.aes = F) +
+  labs(x = "Glass bead mass (mg)", y = "Total SCFA concentration (mM)", color = "Donor") +
+  #facet_wrap(~scfa, scales = "free_y") +
+  facet_grid(~size*scfa, scales = "free", space = "free")
+  theme(axis.text.x = element_text(angle = -45, hjust=0))
+
+## Total
+glass_gc_total_plot <- ggplot(data=glass_gc_total, aes(x=amount, y=sum, color = donor, group = donor)) +
+  geom_point(alpha = 0.5, position = position_jitter(height = 0, width = 0.05)) +
+  geom_line(data = glass_gc_total_summary, aes(x=amount, y=mean, color = donor, group = donor)) +
+  geom_errorbar(data = glass_gc_total_summary2, aes(x = amount, ymin=mean2, ymax=mean2),
+                width=0.5, color="red", inherit.aes = F) +
+  geom_errorbar(data = glass_gc_total_summary2, aes(x = amount, ymin=mean2-se, ymax=mean2+se),
+                width=0.25, inherit.aes = F) +
+  #annotate(geom = "text", x = c(1,2), y = c(15, 39), label = "***", size = 10) +
+  #geom_hline(yintercept = 41, alpha = 0) +
+  labs(x = "Glass bead mass (mg)", y = "Total SCFA concentration (mM)", color = "Donor") +
+  facet_grid(~size, scales = "free_x", space = "free")
+
+```
+
+#Patch
+```{r}
+figure_patch <- bran_gc_total_plot / glass_gc_total_plot +
+  plot_annotation(tag_levels = "A")
+
+#ggsave("plots/figS1.png", figure_patch, height = 6, width = 6)
+
+
+```
+

@@ -1,0 +1,41 @@
+participant,height (cm),weight (kg),Which of these options best describes your diet?  Select one,diet,diet_other,Sex,"In the last month, have you taken a probiotic supplement (a supplement containing active/live bacterial cultures)? ",How often do you use probiotic supplements?  Select one. ,What supplement(s) do you take?,"In the last month, have you taken a fiber supplement? ",How often do you use fiber supplements?  Select one. ,What supplement(s) do you take?,Are you unable to consume lactose containing products (Lactose intolerant)? ,How many times do you have a bowel movement in an average day?   Select one. ,"Describe the quality of your bowel movements, using the chart below for reference.   Select one. ","In the past 30 days, how many times have you experienced constipation?  ","In the past 30 days, how many times have you experienced diarrhea?","In the past 30 days, how many times have you experienced discomfort while defecating?"
+AA89,175.26,82.553744,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Male,No,,,No,,,No,Two,3 to 4,0,1 to 3,0
+AN68,172.085,63.956472,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Male,No,,,No,,,No,One,3 to 4,0,0,0
+AP25,179.07,82.553744,I eat anything except red meat,I do not follow a specialized diet,,Male,No,,,No,,,No,Two,3 to 4,0,0,0
+CJ31,177.8,85.275296,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Female,No,,,No,,,No,Two,3 to 4,0,0,0
+DZ59,157.48,67.131616,Vegetarian,I do not follow a specialized diet,,Female,No,,,No,,,No,One,3 to 4,0,0,0
+EX17,180.34,70.30676,Vegetarian,I do not follow a specialized diet,,Male,No,,,No,,,No,Three,3 to 4,1 to 3,1 to 3,1 to 3
+FS57,176.53,77.564232,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Male,No,,,No,,,No,One,3 to 4,0,1 to 3,0
+GF13,165.735,63.049288,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Female,No,,,No,,,No,One,3 to 4,0,1 to 3,0
+GT64,182.88,65.77084,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Male,No,,,No,,,No,One,3 to 4,1 to 3,1 to 3,1 to 3
+HE12,175.26,71.213944,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Male,No,,,No,,,No,One,3 to 4,1 to 3,4 to 6,1 to 3
+HE41,175.26,71.667536,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Male,No,,,No,,,No,One,3 to 4,0,1 to 3,0
+JM84,165.1,61.23492,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Male,No,,,No,,,No,One,3 to 4,0,0,0
+KC86,163.83,53.523856,,I do not follow a specialized diet,,Female,No,,,No,,,No,One,3 to 4,1 to 3,1 to 3,0
+KD32,164.465,54.43104,Vegetarian,I do not follow a specialized diet,,Female,No,,,No,,,No,One,3 to 4,1 to 3,1 to 3,0
+KM79,167.64,66.224432,I eat anything except red meat,Other,"4 Eggs in the morning  with Spinach. Then lunch and dinner are the same with a chicken breast, spinach, and rice. Snacks are avocados , peanuts, and raisins and occasionally milk  / whey. That's it.",Male,No,,,No,,,No,One,3 to 4,0,0,0
+KX62,172.72,63.049288,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Female,No,,,No,,,No,One,3 to 4,0,1 to 3,0
+LA27,157.48,61.688512,I eat anything with no exclusions (omnivore),"Exclude refined sugars,Other",I do a Leto diet from Monday to Friday afternoon and then eat pretty much anything during he weekends. ,Female,No,,,Yes,Regularly (3-5 times per week),Walmart brand,No,One,1 to 2,4 to 6,4 to 6,1 to 3
+LJ71,165.1,68.0388,Vegetarian,I do not follow a specialized diet,,Female,No,,,No,,,No,One,3 to 4,4 to 6,1 to 3,1 to 3
+MH99,152.4,58.059776,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Female,Yes,Regularly (3-5 times per week),Yogurt,No,,,No,One,3 to 4,1 to 3,1 to 3,1 to 3
+MJ64,164.465,60.327736,Vegetarian,Other,Recently 90% vegetarian,Female,No,,,No,,,Yes,One,3 to 4,0,0,0
+NH84,186.055,93.893544,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Male,No,,,No,,,Yes,One,3 to 4,1 to 3,1 to 3,1 to 3
+NV93,175.26,67.585208,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Female,No,,,No,,,No,One,3 to 4,1 to 3,0,1 to 3
+PJ48,170.18,67.131616,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Female,No,,,No,,,Yes,One,3 to 4,1 to 3,4 to 6,0
+PV75,162.56,66.678024,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Female,No,,,No,,,No,Two,5 to 7,1 to 3,0,0
+PW58,173.99,74.389088,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Male,No,,,No,,,No,One,3 to 4,0,1 to 3,1 to 3
+QL85,180.34,60.781328,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Female,No,,,No,,,No,One,3 to 4,0,0,0
+QX74,170.18,64.863656,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Female,No,,,No,,,Yes,One,3 to 4,1 to 3,0,0
+QY45,181.61,82.553744,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Male,No,,,No,,,No,One,3 to 4,0,0,0
+RD12,171.45,70.30676,I eat anything except red meat,I do not follow a specialized diet,,Female,Yes,Occasionally (1-2 times per week),I drink kombucha tea,No,,,No,One,1 to 2,7 to 10,1 to 3,1 to 3
+SF58,167.64,66.678024,I eat anything except red meat,I do not follow a specialized diet,,Female,No,,,No,,,No,Three,3 to 4,0,0,0
+SH68,167.64,63.50288,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Male,No,,,No,,,No,Two,5 to 7,0,4 to 6,1 to 3
+SM56,161.29,62.142104,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Female,No,,,No,,,No,One,3 to 4,1 to 3,0,1 to 3
+TQ79,161.29,64.863656,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Female,No,,,No,,,No,One,3 to 4,0,0,0
+VP72,162.56,58.96696,I eat anything except red meat,I do not follow a specialized diet,,Female,No,,,No,,,No,One,3 to 4,0,1 to 3,0
+WB74,182.88,83.91452,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Male,No,,,No,,,No,One,3 to 4,0,0,0
+XD99,165.1,59.874144,I eat anything with no exclusions (omnivore),I do not follow a specialized diet,,Female,No,,,No,,,No,One,5 to 7,1 to 3,1 to 3,0
+YV19,155.575,57.606184,I eat anything with no exclusions (omnivore),,,Female,No,,,No,,,No,One,3 to 4,0,1 to 3,1 to 3
+ZE74,167.64,68.945984,Vegetarian,I do not follow a specialized diet,,Male,,,,No,,,No,One,3 to 4,0,0,0
+ZQ31,149.86,49.89512,I eat anything with no exclusions (omnivore),"Exclude refined sugars,I do not follow a specialized diet",,Female,No,,,No,,,No,One,3 to 4,1 to 3,0,0
+ZY61,167.64,50.348712,Vegetarian,I do not follow a specialized diet,,Female,No,,,No,,,No,One,3 to 4,1 to 3,0,1 to 3

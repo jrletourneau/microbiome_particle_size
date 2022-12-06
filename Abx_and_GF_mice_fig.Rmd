@@ -1,0 +1,327 @@
+---
+title: "Figure on modulating microbiome with Abx and fiber supplementation"
+output: html_notebook
+---
+
+# Load libraries
+```{r}
+# Plotting
+library(tidyverse)
+library(RColorBrewer)
+library(patchwork)
+library(cowplot)
+
+# Stats
+library(lme4)
+library(lmerTest)
+
+theme_set(theme_bw() +
+            theme(axis.text = element_text(color = "black"),
+                  axis.ticks = element_line(color = "black"),
+                  plot.title = element_text(hjust = 0.5)))
+
+
+# Omit reads with obvious aggregation (particles greater than filter size detected)
+omit_aggregates <- function(df) {
+  df[rowSums(df[,which(colnames(df) == "X2100"):which(colnames(df) == "X3500")]) == 0,] %>%
+    return()
+}
+
+
+```
+
+# Load data
+```{r}
+# Mouse Abx data
+mouse_Abx_data <- read.csv("data/Mouse_Abx_1and2.csv") %>%
+  omit_aggregates() %>%
+  mutate(donor = factor(donor), time = factor(time + 3, levels = c("-1", "1", "2"))) %>%
+  filter(cond == "IMI")
+
+# GOS data is kind of inconclusive, in part because missing sample for one of the baseline points
+## Overall looks like FPS started higher for these mice, but did not increase with Abx (at least, as much)
+
+mouse_Abx_D50 <- mouse_Abx_data %>%
+  dplyr::select(project, donor, cond, time, Dx..50.) %>%
+  group_by(project, donor, cond, time) %>%
+  dplyr::summarize(median = mean(Dx..50.))
+
+mouse_Abx_D50_summary <- mouse_Abx_D50 %>%
+  group_by(time) %>%
+  dplyr::summarize(mean = mean(median), se = sd(median)/sqrt(length(median)))
+
+mouse_Abx_curves <- mouse_Abx_data %>%
+  dplyr::select(project, donor, cond, time, X0.01:X3500) %>%
+  gather(key=size, value=volume, (ncol(.)-100):ncol(.)) %>%
+  mutate(size = as.numeric(substr(size, 2, nchar(size)))) %>%
+  group_by(project, donor, cond, time, size) %>%
+  dplyr::summarize(mean=mean(volume)) %>%
+  ungroup() %>%
+  as.data.frame()
+
+mouse_Abx_curves_summary <- mouse_Abx_curves %>%
+  group_by(time, size) %>%
+  dplyr::summarize(mean2=mean(mean), se=sd(mean)/sqrt(length(mean)))
+  
+
+# Mouse GF vs. SPF
+mouse_gf_metadata <- read.csv("data/cy_mice_metadata.csv")
+
+mouse_gf <- read.csv("data/CY_mice_mastersizer.csv") %>%
+  omit_aggregates() %>%
+  left_join(mouse_gf_metadata, by = c("sample_number" = "sample")) %>%
+  relocate(strain:Age..wks., .after = sample_number) %>%
+  #filter(sample_number != "26") # insufficient sample here - obscuration ~ 0.05
+  filter(Microbiome != "Dysbiosed") # DSS-colitis seems to increase FPS, but insufficient n to say
+
+mouse_gf_D50 <- mouse_gf %>%
+  dplyr::select(sample_number, Microbiome, Sex, cage, Age..wks., Dx..50.) %>%
+  group_by(sample_number, Microbiome, Sex, cage, Age..wks.) %>%
+  dplyr::summarize(median = mean(Dx..50.))
+
+mouse_gf_D50_summary <- mouse_gf_D50 %>%
+  group_by(Microbiome) %>%
+  dplyr::summarize(mean = mean(median), se = sd(median)/sqrt(length(median)))
+
+mouse_gf_curves <- mouse_gf %>%
+  dplyr::select(sample_number, Microbiome, Sex, cage, Age..wks., X0.01:X3500) %>%
+  gather(key=size, value=volume, (ncol(.)-100):ncol(.)) %>%
+  mutate(size = as.numeric(substr(size, 2, nchar(size)))) %>%
+  group_by(sample_number, Microbiome, Sex, cage, Age..wks., size) %>%
+  dplyr::summarize(mean=mean(volume)) %>%
+  ungroup() %>%
+  as.data.frame()
+
+mouse_gf_curves_summary <- mouse_gf_curves %>%
+  group_by(Microbiome, size) %>%
+  dplyr::summarize(mean2=mean(mean), se=sd(mean)/sqrt(length(mean)))
+
+
+
+```
+
+# Stats
+```{r}
+# Mouse Abx
+lmer(median ~ time + (1 | donor), mouse_Abx_D50) %>%
+  summary()
+#             Estimate Std. Error      df t value Pr(>|t|)    
+# (Intercept)  119.684     26.850   9.287   4.457  0.00146 ** 
+# time1         72.026     29.847   8.000   2.413  0.04230 *  
+# time2        169.836     29.847   8.000   5.690  0.00046 ***
+
+# Mouse GF vs. SPF
+lm(median ~ Microbiome, mouse_gf_D50[1:22,]) %>%
+  summary()
+#               Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)    139.441      7.099  19.644 1.52e-14 ***
+# MicrobiomeSPF  -28.184      9.611  -2.932  0.00824 ** 
+
+
+```
+
+
+# Plot
+```{r}
+# Mouse Abx
+# Plot medians
+mouse_Abx_plot <- ggplot(mouse_Abx_D50, aes(x = time, y = median, color = donor, group = donor)) +
+  geom_point() +
+  geom_line() +
+  geom_errorbar(data = mouse_Abx_D50_summary, aes(x=time, ymin=mean, ymax=mean),
+                color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = mouse_Abx_D50_summary, aes(x=time, ymin=mean-se, ymax=mean+se),
+                width=0.25, inherit.aes = F) + 
+  labs(x = "Time (days)", y = "Median FPS (μm)", color = "Cage") +
+  scale_y_log10() +
+  annotate(geom = "text", x = c(2,3), y = c(270, 485), label = c("*", "***"), size = 10) +
+  geom_hline(yintercept = 510, alpha = 0)
+
+# Plot curves
+mouse_Abx_curve_plot <- ggplot(mouse_Abx_curves_summary, aes(x=size, y = mean2, color = time, group = time)) +
+  geom_ribbon(aes(ymin=mean2-se, ymax=mean2+se, fill = time), color = NA, alpha = 0.5) +
+  geom_line() +
+  geom_hline(color = "black", yintercept = 0, linetype = "dashed") +
+  labs(x = "Particle size (μm)", y = "Particles by volume (%)", color = "Time (days)", fill = "Time (days)") +
+  scale_x_log10(limits=c(0.357, 2390))
+
+
+# Mouse GF vs. SPF
+# Plot medians
+mouse_gf_plot <- ggplot(mouse_gf_D50, aes(x = Microbiome, y = median, color = cage)) +
+  geom_point(position = position_jitter(width = 0.05, height = 0)) +
+  geom_errorbar(data = mouse_gf_D50_summary, aes(x=Microbiome, ymin=mean, ymax=mean),
+                color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = mouse_gf_D50_summary, aes(x=Microbiome, ymin=mean-se, ymax=mean+se),
+                width=0.25, inherit.aes = F) + 
+  labs(x = "Microbiome", y = "Median FPS (μm)", color = "Cage") +
+  annotate(geom = "text", x = c(2), y = c(155), label = c("**"), size = 10) +
+  geom_hline(yintercept = 200, alpha = 0) +
+  scale_y_log10()
+
+mouse_gf_curve_plot <- ggplot(mouse_gf_curves_summary, aes(x=size, y = mean2, color = Microbiome,
+                                                           group = Microbiome)) +
+  geom_ribbon(aes(ymin=mean2-se, ymax=mean2+se, fill = Microbiome), color = NA, alpha = 0.5) +
+  geom_line() +
+  geom_hline(color = "black", yintercept = 0, linetype = "dashed") +
+  labs(x = "Patricle size (μm)", y = "Particles by volume (%)", color = "Microbiome", fill = "Microbiome") +
+  scale_x_log10(limits=c(0.357, 2390))
+
+
+
+```
+
+## Fig. S9 - confirm mouse findings without microbe peak
+```{r}
+
+# Local minimum around 2 microns - using this as cutoff and recomputing
+
+# Abx
+
+mouse_Abx_nobac <- mouse_Abx_curves %>%
+  filter(size > 2) %>%
+  group_by(project, donor, cond, time) %>%
+  dplyr::summarize(size = size, mean_adj = 100*mean/sum(mean))
+
+mouse_Abx_nobac_summary <- mouse_Abx_nobac %>%
+  group_by(time, size) %>%
+  dplyr::summarize(mean2=mean(mean_adj), se=sd(mean_adj)/sqrt(length(mean_adj)))
+
+mouse_Abx_nobac_curve_plot <- ggplot(mouse_Abx_nobac_summary,
+                                     aes(x=size, y = mean2, color = time, group = time)) +
+  geom_ribbon(aes(ymin=mean2-se, ymax=mean2+se, fill = time), color = NA, alpha = 0.5) +
+  geom_line() +
+  geom_hline(color = "black", yintercept = 0, linetype = "dashed") +
+  labs(x = "Particle size (μm)", y = "Particles by volume (%)", color = "Time (days)", fill = "Time (days)") +
+  scale_x_log10(limits=c(0.357, 2390))
+
+## Recompute medians
+weighted_mean <- function(bins, freqs) {
+  sum(bins * freqs) / sum(freqs)
+}
+
+mouse_Abx_nobac_D50 <- mouse_Abx_D50 %>%
+  mutate(weighted_mean = NA) %>%
+  as.data.frame()
+
+for(r in 1:nrow(mouse_Abx_nobac_D50)) {
+  
+ tmp <- mouse_Abx_nobac %>%
+    filter(donor == mouse_Abx_nobac_D50[r, "donor"] &
+             cond == mouse_Abx_nobac_D50[r, "cond"] &
+             time == mouse_Abx_nobac_D50[r, "time"])
+ 
+  mouse_Abx_nobac_D50[r,"weighted_mean"] <- weighted_mean(tmp$size, tmp$mean_adj)
+    
+}
+
+lmer(weighted_mean ~ time + (1 | donor), mouse_Abx_nobac_D50) %>%
+  summary()
+# time1         52.587     33.655   8.000   1.563  0.15679    
+# time2        161.405     33.655   8.000   4.796  0.00136 ** 
+
+mouse_Abx_nobac_D50_summary <- mouse_Abx_nobac_D50 %>%
+  group_by(time) %>%
+  dplyr::summarize(mean = mean(weighted_mean), se = sd(weighted_mean)/sqrt(length(weighted_mean)))
+
+mouse_Abx_nobac_plot <- ggplot(mouse_Abx_nobac_D50,
+                         aes(x = time, y = weighted_mean, color = donor, group = donor)) +
+  geom_point() +
+  geom_line() +
+  geom_errorbar(data = mouse_Abx_nobac_D50_summary, aes(x=time, ymin=mean, ymax=mean),
+                color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = mouse_Abx_nobac_D50_summary, aes(x=time, ymin=mean-se, ymax=mean+se),
+                width=0.25, inherit.aes = F) + 
+  labs(x = "Time (days)", y = "Adjusted mean FPS (μm)", color = "Cage") +
+  scale_y_log10() +
+  annotate(geom = "text", x = c(3), y = c(525), label = c("**"), size = 10) +
+  geom_hline(yintercept = 600, alpha = 0)
+
+
+
+# GF
+mouse_gf_nobac <- mouse_gf_curves %>%
+  filter(size > 2) %>%
+  group_by(sample_number, Microbiome, Sex, cage, Age..wks.) %>%
+  dplyr::summarize(size = size, mean_adj = 100*mean/sum(mean))
+
+mouse_gf_nobac_summary <- mouse_gf_nobac %>%
+  group_by(Microbiome, size) %>%
+  dplyr::summarize(mean2=mean(mean_adj), se=sd(mean_adj)/sqrt(length(mean_adj)))
+
+mouse_gf_nobac_curve_plot <- ggplot(mouse_gf_nobac_summary,
+                                     aes(x=size, y = mean2,
+                                         color = Microbiome, group = Microbiome)) +
+  geom_ribbon(aes(ymin=mean2-se, ymax=mean2+se, fill = Microbiome),
+              color = NA, alpha = 0.5) +
+  geom_line() +
+  geom_hline(color = "black", yintercept = 0, linetype = "dashed") +
+  labs(x = "Particle size (μm)", y = "Particles by volume (%)",
+       color = "Microbiome", fill = "Microbiome") +
+  scale_x_log10(limits=c(0.357, 2390))
+
+
+mouse_gf_nobac_D50 <- mouse_gf_D50 %>%
+  mutate(weighted_mean = NA) %>%
+  as.data.frame()
+
+for(r in 1:nrow(mouse_gf_nobac_D50)) {
+  
+ tmp <- mouse_gf_nobac %>%
+    filter(sample_number == mouse_gf_nobac_D50[r, "sample_number"])
+ 
+  mouse_gf_nobac_D50[r,"weighted_mean"] <- weighted_mean(tmp$size, tmp$mean_adj)
+    
+}
+
+lm(weighted_mean ~ Microbiome, mouse_gf_nobac_D50) %>%
+  summary()
+# p = 0.0489 * :)
+
+mouse_gf_nobac_D50_summary <- mouse_gf_nobac_D50 %>%
+  group_by(Microbiome) %>%
+  dplyr::summarize(mean = mean(weighted_mean), se = sd(weighted_mean)/sqrt(length(weighted_mean)))
+  
+
+mouse_gf_nobac_plot <- ggplot(mouse_gf_nobac_D50, aes(x = Microbiome, y = weighted_mean, color = cage)) +
+  geom_point(position = position_jitter(width = 0.05, height = 0)) +
+  geom_errorbar(data = mouse_gf_nobac_D50_summary, aes(x=Microbiome, ymin=mean, ymax=mean),
+                color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = mouse_gf_nobac_D50_summary, aes(x=Microbiome, ymin=mean-se, ymax=mean+se),
+                width=0.25, inherit.aes = F) + 
+  labs(x = "Microbiome", y = "Adjusted mean FPS (μm)", color = "Cage") +
+  annotate(geom = "text", x = c(2), y = c(190), label = c("*"), size = 10) +
+  scale_y_log10()
+
+```
+
+
+# Patch figure
+```{r}
+
+z3 <- readRDS("plots/z3_plot.rds")
+
+# Make figure 5 - mice
+figure_patch <- (mouse_gf_plot + mouse_gf_curve_plot) /
+  (mouse_Abx_plot + mouse_Abx_curve_plot) +
+  plot_annotation(tag_levels = "A")
+
+#ggsave("plots/fig4.png", figure_patch, height = 6, width = 8)
+
+# Fig S9
+figS9_bottom <- plot_grid(mouse_gf_nobac_plot, mouse_gf_nobac_curve_plot,
+                          mouse_Abx_nobac_plot, mouse_Abx_nobac_curve_plot,
+                          labels = c("B", "C", "D", "E"), label_fontface = "plain")
+
+figS9_patch <- plot_grid(z3 +
+                           theme(legend.direction = "horizontal", legend.box = "vertical"),
+                         figS9_bottom,
+                          ncol = 1, rel_heights = c(3.3, 5),
+                          labels = c("A", ""), label_fontface = "plain")
+
+ggsave("plots/figS9.png", figS9_patch, height = 9.5, width = 8)
+
+
+
+```
+

@@ -1,0 +1,339 @@
+---
+title: "Fractionation experiment 16S analysis"
+output: html_notebook
+---
+
+# Load libraries
+```{r}
+# Plotting
+library(tidyverse)
+library(RColorBrewer)
+library(ggtext)
+library(cowplot)
+
+# Stats
+library(phyloseq)
+library(lme4)
+library(lmerTest)
+library(vegan)
+library(ALDEx2)
+
+theme_set(theme_bw() +
+            theme(axis.text = element_text(color = "black"),
+                  axis.ticks = element_line(color = "black"),
+                  plot.title = element_text(hjust = 0.5)))
+
+set.seed(123)
+
+
+```
+
+# 16S
+## Load data
+```{r}
+samdf <- read.csv("data/fractionation_16S/mapping.csv") %>%
+  column_to_rownames("SampleID") %>%
+  mutate(size_bin = factor(size_bin, levels = c("<2", "2 to 11", "11 to 100", "100+")))
+taxa <- read.table(file= "data/fractionation_16S/taxtab.nochim.tsv", sep = '\t', header = T) %>%
+  mutate(binom = case_when(is.na(Genus) & !is.na(Family) ~ paste0(Family, "family (ASV ", 
+                                                                  gsub("seq_", "", rownames(.)), ")"),
+                           is.na(Species) & !is.na(Genus) ~ paste0("*", Genus, " sp.* (ASV ", 
+                                                                  gsub("seq_", "", rownames(.)), ")"),
+                           !is.na(Species) ~ paste0("*", Genus, " ", Species, "* (ASV ", 
+                                                                  gsub("seq_", "", rownames(.)), ")")))
+asv <- read.table(file= "data/fractionation_16S/seqtab.nochim.tsv", sep = '\t', header = T)
+
+ps <- phyloseq(otu_table(asv, taxa_are_rows=FALSE), 
+               sample_data(samdf), 
+               tax_table(as.matrix(taxa))) %>%
+  prune_samples(sample_sums(.) >= 5000, .)
+# 923 taxa and 40 samples
+
+ps_filt <- ps %>%
+  filter_taxa(function(x) sum(x > 3) > 0.25 * length(x), TRUE)
+
+# 160 taxa x 40
+
+
+
+```
+
+## Calculate diversity
+```{r}
+diversity <- ps %>%
+  estimate_richness(split = TRUE, measures=c("Shannon", "Observed")) %>%
+  cbind(samdf[rownames(.),], .) %>%
+  gather(key = measure, value = value, c("Shannon", "Observed")) %>%
+  mutate(size_bin = factor(size_bin, levels = c("<2", "2 to 11", "11 to 100", "100+")))
+
+diversity %>%
+  filter(measure == "Observed") %>%
+  aov(value ~ size_bin + donor_long, data = .) %>%
+  #TukeyHSD(which = "size_bin")
+  summary()
+  #lmer(value ~ size_bin + (1 | donor_long), data = .) %>%
+  #summary()
+# ANOVA Shannon: size p = 0.00025, donor p < 2e-16
+## signif different: <2 vs. 11-100, <2 vs. 100+, 2-11 vs. 100+ --> a, ab, bc, c
+# ANOVA Observed: size p = 0.050, donor p = 8.7e-16
+
+diversity_summary <- diversity %>%
+  group_by(size_bin, measure) %>%
+  summarize(mean = mean(value), se = sd(value)/sqrt(length(value)))
+
+div_annotation <- data.frame(label = c("a", "ab", "bc", "c"),
+                               size_bin = c("<2", "2 to 11", "11 to 100", "100+"),
+                               value = c(4.1, 4.15, 4.2, 4.4),
+                               measure = rep("Shannon", 4)) %>%
+  mutate(size_bin = factor(size_bin, levels = c("<2", "2 to 11", "11 to 100", "100+")))
+
+diversity_plot <- ggplot(diversity, aes(x = size_bin, y = value, color = donor_short, group = donor_short)) +
+  geom_point() +
+  geom_line() +
+  geom_errorbar(data = diversity_summary, aes(x=size_bin, ymin=mean, ymax=mean),
+               color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = diversity_summary, aes(x=size_bin, ymin=mean-se, ymax=mean+se),
+               width=0.25, inherit.aes = F) +
+  labs(x = "Size fraction (μm)", y = "16S alpha diversity", color = "Participant") +
+  facet_wrap(~measure, scales = "free_y") +
+  geom_text(data = div_annotation, aes(x = size_bin, y = value, label = label), inherit.aes = F)
+
+```
+
+## Ordinate
+```{r}
+sixteenS_ord <- ordinate(ps, method="NMDS", distance="bray")
+
+bray <- distance(ps, method = "bray") %>% as.matrix()
+adonis2(formula = bray ~ size_bin + donor_short, 
+        data = as.data.frame(as.matrix(ps@sam_data)),
+        permutations=9999, method = "bray")
+# size_bin R2 = 0.031, p < 0.0001
+# donor_short R2 = 0.88, p < 0.0001
+
+ord_plot_16S <- plot_ordination(ps, sixteenS_ord, color = "donor_short",
+                                 shape = "size_bin", title="16S Bray NMDS") +
+  labs(shape = "Size fraction (μm)", color = "Participant") +
+  geom_textbox(data = data.frame(x=1.08, y = -0.95,
+                                 label = "PERMANOVA<br>size *R*<sup>2</sup> = 0.031, *p* < 0.0001<br>participant *R*<sup>2</sup> = 0.88, *p* < 0.0001"),
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"),
+               width = unit(3, "inch"), inherit.aes = F)
+# Still super clustered by participant
+
+
+```
+
+## Calculate differential abundance
+```{r}
+#kw.test_16S <- aldex.clr(as.data.frame(t(ps_filt@otu_table)),
+#                     factor(ps_filt@sam_data$size_bin),
+#                     mc.samples=128, denom="all") %>%
+#  aldex.kw() # all NS
+# All NS
+
+# Try aldex.glm to better account for participant
+otu_flip <- as.data.frame(t(ps_filt@otu_table))
+mm <- ps_filt@sam_data %>%
+  as.matrix() %>%
+  as.data.frame() %>%
+  model.matrix(~ size_bin + donor_short, data = .)
+
+# ALDEx2 correlation (not incorporating participant...)
+clr <- aldex.clr(otu_flip, mm, mc.samples = 128, denom ="all")
+#glm.test <- aldex.glm(clr) # slow
+
+#seq_1 p = 0.0040 in 100+ vs. <2; seq_5 p = 0.0071 in 100+ vs. <2
+
+melty_select <- ps_filt %>%
+  microbiome::transform(transform = "compositional") %>%
+  psmelt() %>%
+  filter(OTU %in% c("seq_1", "seq_5"))
+
+# Tukey on those taxa using CLR data
+ps_filt %>%
+  microbiome::transform(transform = "clr") %>%
+  psmelt() %>%
+  filter(OTU == "seq_5") %>%
+  aov(Abundance ~ size_bin + donor_short, data = .) %>%
+  TukeyHSD(which = "size_bin")
+# seq_1 signif different: all except <2 vs. 2-11, 11-100 vs. 100+ --> a, a, b, b
+# seq_5 signif different: <2 vs. 11-100, <2 vs. 100+, 2-11 vs. 100+ --> a, ab, bc, c
+
+melty_select_summary <- melty_select %>%
+  group_by(size_bin, binom) %>%
+  summarize(mean = mean(Abundance), se = sd(Abundance)/sqrt(length(Abundance)))
+
+select_annotation <- data.frame(label = c("a", "a", "b", "b",
+                                          "a", "ab", "bc", "c"),
+                               size_bin = rep(c("<2", "2 to 11", "11 to 100", "100+"), 2),
+                               value = c(0.55, 0.62, 0.32, 0.245,
+                                         0.088, 0.098, 0.068, 0.058),
+                               binom = rep(c("*Blautia obeum* (ASV 1)",
+                                               "*Blautia sp.* (ASV 5)"), each=4)) %>%
+  mutate(size_bin = factor(size_bin, levels = c("<2", "2 to 11", "11 to 100", "100+")))
+
+select_plot <- ggplot(melty_select, aes(x = size_bin, y = Abundance,
+                                        color = donor_short, group = donor_short)) +
+  geom_point() +
+  geom_errorbar(data = melty_select_summary, aes(x=size_bin, ymin=mean, ymax=mean),
+               color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = melty_select_summary, aes(x=size_bin, ymin=mean-se, ymax=mean+se),
+               width=0.25, inherit.aes = F) +
+  geom_line() +
+  labs(x = "Size fraction (μm)", y = "Relative abundance", color = "Participant") +
+  facet_wrap(~binom, scales = "free_y") +
+  theme(strip.text = element_markdown()) +
+  geom_text(data = select_annotation, aes(x = size_bin, y = value, label = label), inherit.aes = F)
+
+
+# Let's also try at the genus level!
+ps_genus <- ps %>%
+  tax_glom(taxrank = "Genus") %>%
+  filter_taxa(function(x) sum(x > 3) > 0.25 * length(x), TRUE)
+
+otu_flip2 <- as.data.frame(t(ps_genus@otu_table))
+mm2 <- ps_genus@sam_data %>%
+  as.matrix() %>%
+  as.data.frame() %>%
+  model.matrix(~ size_bin + donor_short, data = .)
+clr2 <- aldex.clr(otu_flip2, mm2, mc.samples = 128, denom ="all")
+glm.test2 <- aldex.glm(clr2) # slow
+# Genus level:
+## only 100+ signif: seq_11 p = 0.0020, seq_10 p = 0.011, seq_1 p = 0.018
+## Anaerostipes, Dorea, Blautia
+# Family level:
+## seq_1 Lachnospiraceae p = 0.029, seq_19 Erysipelatoclostridiaceae p = 0.035
+
+melty_select_genus <- ps_genus %>%
+  microbiome::transform(transform = "compositional") %>%
+  psmelt() %>%
+  filter(OTU %in% c("seq_1", "seq_10", "seq_11"))
+
+melty_select_genus_summary <- melty_select_genus %>%
+  group_by(size_bin, Genus) %>%
+  summarize(mean = mean(Abundance), se = sd(Abundance)/sqrt(length(Abundance)))
+
+select_genus_plot <- ggplot(melty_select_genus, aes(x = size_bin, y = Abundance,
+                                        color = donor_short, group = donor_short)) +
+  geom_point() +
+  geom_errorbar(data = melty_select_genus_summary, aes(x=size_bin, ymin=mean, ymax=mean),
+               color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = melty_select_genus_summary,
+                aes(x=size_bin, ymin=mean-se, ymax=mean+se),
+               width=0.25, inherit.aes = F) +
+  geom_line() +
+  labs(x = "Size fraction (μm)", y = "Relative abundance", color = "Participant") +
+  facet_wrap(~Genus, scales = "free_y") +
+  theme(strip.text = element_markdown())
+
+
+```
+
+# Look at trnL data
+```{r}
+trnL <- readRDS("data/fractionation_16S/avocado_trnL.rds") %>%
+  prune_samples(sample_sums(.) >= 5000, .)
+
+# samples 33, 34, 36, 37, 40 have <= 50 reads
+
+# Look at observed ASVs
+
+trnL_diversity <- trnL %>%
+  estimate_richness(split = TRUE, measures = c("Observed", "Shannon")) %>%
+  gather(key = measure, value = value, c("Observed", "Shannon")) %>%
+  cbind(as.data.frame(trnL@sam_data), .) %>%
+  mutate(size_bin = factor(size_bin, levels = c("<2", "2 to 11", "11 to 100", "100+")))
+
+trnL_diversity %>%
+  filter(measure == "Observed") %>%
+  aov(value ~ size_bin + donor_long, data = .) %>%
+  summary()
+# Observed: donor p = 0.054, size p = 0.22
+# Shannon: donor p = 0.13, size p = 0.95
+
+trnL_diversity_summary <- trnL_diversity %>%
+  group_by(size_bin, measure) %>%
+  summarize(mean = mean(value), se = sd(value)/sqrt(length(value)))
+
+trnL_diversity_plot <- ggplot(trnL_diversity, aes(x = size_bin, y = value, color = donor_short, group = donor_short)) +
+  geom_point() +
+  geom_line() +
+  geom_errorbar(data = trnL_diversity_summary, aes(x=size_bin, ymin=mean, ymax=mean),
+               color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = trnL_diversity_summary, aes(x=size_bin, ymin=mean-se, ymax=mean+se),
+               width=0.25, inherit.aes = F) +
+  labs(x = "Size fraction (μm)", y = "Observed ASVs", color = "Participant") +
+  facet_wrap(~measure, scales = "free_y")
+
+
+```
+
+## trnL ordination
+```{r}
+trnL_ord <- ordinate(trnL, method="NMDS", distance="bray")
+
+bray2 <- distance(trnL, method = "bray") %>% as.matrix()
+adonis2(formula = bray2 ~ size_bin + donor_short, 
+        data = as.data.frame(as.matrix(trnL@sam_data)),
+        permutations=9999, method = "bray")
+# size_bin R2 = 0.071, p = 0.11
+# donor_short R2 = 0.60, p < 0.0001
+
+ord_plot_trnL <- plot_ordination(trnL, trnL_ord, color = "donor_short",
+                                 shape = "size_bin", title="trnL Bray NMDS") +
+    labs(shape = "Size fraction (μm)", color = "Participant") +
+  geom_textbox(data = data.frame(x=-0.122, y = -0.8,
+                                 label = "PERMANOVA<br>size *R*<sup>2</sup> = 0.071, *p* = 0.11<br>participant *R*<sup>2</sup> = 0.60, *p* < 0.0001"),
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"),
+               width = unit(3, "inch"), inherit.aes = F)
+
+```
+
+## trnL differential abundance
+```{r}
+# kw.test_trnL <- aldex.clr(as.data.frame(t(trnL@otu_table)),
+#                      factor(trnL@sam_data$size_bin),
+#                      mc.samples=128, denom="all") %>%
+#   aldex.kw() # all NS
+
+# Try aldex.glm to better account for participant
+otu_flip3 <- as.data.frame(t(trnL@otu_table))
+mm4 <- trnL@sam_data %>%
+  as.matrix() %>%
+  as.data.frame() %>%
+  model.matrix(~ size_bin + donor_short, data = .)
+
+# ALDEx2 correlation (not incorporating participant...)
+clr <- aldex.clr(otu_flip, mm, mc.samples = 128, denom ="all")
+#glm.test <- aldex.glm(clr) # slow
+
+```
+
+# Patch figure
+```{r}
+
+fig_top <- plot_grid(ord_plot_16S + theme(legend.position = "none"),
+                   diversity_plot + theme(legend.position = "none"),
+                   nrow = 1, rel_widths = c(2, 3),
+                   labels = c("A", "B"), label_fontface = "plain")
+
+fig_bottom <- plot_grid(ord_plot_trnL + theme(legend.position = "none"),
+                   trnL_diversity_plot + theme(legend.position = "none"),
+                   nrow = 1, rel_widths = c(2, 3),
+                   labels = c("D", "E"), label_fontface = "plain")
+
+fig_left <- plot_grid(fig_top,
+                      select_plot + theme(legend.position = "none"),
+                      fig_bottom,
+                      ncol = 1,
+                      labels = c("", "C", ""), label_fontface = "plain")
+
+patch <- plot_grid(fig_left, get_legend(ord_plot_16S), nrow = 1, rel_widths = c(7, 1))
+
+#ggsave("plots/supp_fig_fractionation.png", patch, height = 11, width = 10.2)
+
+```
+
+

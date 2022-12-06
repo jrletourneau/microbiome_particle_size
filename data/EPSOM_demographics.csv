@@ -1,0 +1,42 @@
+participant,typical_chew_thoroughness,typical_number_chews,typical_meal_duration,typical_bristol,diet,diet_other,"In the last month, have you taken a probiotic supplement (a supplement containing active/live bacterial cultures)?","In the last month, have you taken a fiber supplement?",How many times do you have a bowel movement in an average day? Select one.,"In the past 30 days, how many times have you experienced constipation?","In the past 30 days, how many times have you experienced diarrhea?","In the past 30 days, how many times have you experienced discomfort while defecating?",What is your current age?,Height (cm),Weight (kg),Gender
+BG89,7,10,20,3 to 4,I eat anything with no exclusions (omnivore),,No,No,One,0,0,0,23,172.72,59.9,Woman
+KC00,6,5,20,3 to 4,I eat anything with no exclusions (omnivore),,No,No,One,0,0,0,32,180.34,72.6,Man
+WU81,4,8,10,3 to 4,I eat anything with no exclusions (omnivore),,No,No,One,0,1 to 3,1 to 3,22,162.56,49.9,Woman
+ZR77,6,8,45,3 to 4,I eat anything with no exclusions (omnivore),,No,No,One,1 to 3,4 to 6,1 to 3,26,167.64,73.5,Woman
+CP64,6,4,15,3 to 4,I eat anything except red meat,"other low-grain, low processed food diet",No,No,Two,1 to 3,0,0,55,172.72,66.2,Woman
+VL51,5,10,25,3 to 4,Vegan,Exclude dairy,Yes,No,Two,1 to 3,0,0,18,160.02,49,Woman
+DW73,6,10,15,3 to 4,I eat anything with no exclusions (omnivore),,No,No,One,1 to 3,1 to 3,0,24,162.56,61.2,Woman
+PE27,4,6,15,3 to 4,Vegetarian,,No,No,Less than one,0,0,0,29,157.48,59,Woman
+UQ43,4,3,20,3 to 4,I eat anything with no exclusions (omnivore),,No,No,One,0,7 to 10,0,23,170.18,59,Woman
+EA91,4,5,10,3 to 4,I eat anything with no exclusions (omnivore),,No,No,Two,0,1 to 3,1 to 3,20,170.18,65.8,Man
+BE04,3,5,60,3 to 4,I eat anything with no exclusions (omnivore),,No,No,Two,0,1 to 3,0,24,157.48,72.6,Woman
+EC63,3,5,7,1 to 2,I eat anything with no exclusions (omnivore),,No,Yes,One,4 to 6,1 to 3,1 to 3,34,167.64,61.7,Woman
+WH89,4,6,20,5 to 7,I eat anything with no exclusions (omnivore),"I take a daily fiber supplement, metamucil ",No,Yes,Two,0,7 to 10,4 to 6,28,162.56,65.3,Woman
+CI54,7,6,12,3 to 4,Vegetarian but eat fish,,No,No,One,0,0,0,20,167.64,65.8,Woman
+GL84,8,25,30,3 to 4,I eat anything with no exclusions (omnivore),,No,No,Two,0,0,0,20,160.02,49.9,Woman
+UQ16,4,15,20,3 to 4,I eat anything with no exclusions (omnivore),,No,No,One,0,0,0,26,167.64,62.6,Woman
+YF85,3,4,10,3 to 4,I eat anything with no exclusions (omnivore),,No,No,One,0,0,0,31,172.72,74.8,Woman
+IJ90,4,10,15,3 to 4,I eat anything with no exclusions (omnivore),,No,No,One,0,0,0,26,177.8,77.1,Man
+NF88,5,15,25,3 to 4,I eat anything with no exclusions (omnivore),,No,Yes,Two,0,1 to 3,0,21,177.8,74.8,Man
+LC73,6,10,25,3 to 4,I eat anything with no exclusions (omnivore),,No,No,One,1 to 3,0,0,26,154.94,54.4,Woman
+VQ77,5,6,10,3 to 4,I eat anything with no exclusions (omnivore),,No,No,One,0,0,0,20,167.64,54.9,Woman
+EF80,6,3,16,3 to 4,I eat anything with no exclusions (omnivore),,No,No,Two,1 to 3,0,0,25,163.068,51,Woman
+CZ70,6,15,13,3 to 4,Vegan,Exclude dairy,No,No,Two,0,0,0,22,165.1,55.8,Woman
+HI98,4,5,20,3 to 4,I eat anything with no exclusions (omnivore),,No,No,One,0,0,1 to 3,21,167.0304,79.4,Woman
+RG86,7,20,10,3 to 4,I eat anything with no exclusions (omnivore),,No,No,One,1 to 3,0,1 to 3,21,167.0304,68.9,Woman
+US29,6,5,15,3 to 4,I eat anything with no exclusions (omnivore),,Yes,No,One,1 to 3,1 to 3,1 to 3,19,167.64,68,Woman
+VI62,6,10,5,3 to 4,I eat anything with no exclusions (omnivore),I don't eat fish or anything that lives in water.,No,No,One,0,0,0,54,162.56,67.6,Woman
+GW68,4,5,15,1 to 2,I eat anything with no exclusions (omnivore),,No,No,One,4 to 6,1 to 3,0,23,162.56,56.7,Woman
+SH66,5,6,15,3 to 4,I eat anything with no exclusions (omnivore),,No,No,Less than one,0,0,1 to 3,29,162.56,54.4,Woman
+EF45,3,4,5,3 to 4,I eat anything with no exclusions (omnivore),,No,No,Two,0,1 to 3,0,28,170.18,65.8,Man
+FW16,7,6,20,1 to 2,I eat anything with no exclusions (omnivore),Halaal,No,No,One,1 to 3,0,1 to 3,21,163.03625,55,Woman
+QY11,7,8,15,5 to 7,Vegetarian but eat fish,,No,No,One,1 to 3,4 to 6,1 to 3,28,170.18,61.2,Woman
+IZ76,4,4,15,3 to 4,I eat anything with no exclusions (omnivore),,No,No,One,1 to 3,1 to 3,1 to 3,25,165.1,51.7,Woman
+VQ50,6,10,20,3 to 4,I eat anything with no exclusions (omnivore),,No,No,One,1 to 3,1 to 3,0,32,165.1,61.2,Woman
+GV14,6,8,20,3 to 4,I eat anything with no exclusions (omnivore),"I like to eat probiotics/fermented foods such as yogurt, kombucha, and sauerkraut but nothing excessive or unusual (not explicit diet supplementation).",No,No,One,1 to 3,1 to 3,4 to 6,25,162.56,74.8,Woman
+TJ95,5,5,15,3 to 4,I eat anything with no exclusions (omnivore),,Yes,No,Two,0,1 to 3,1 to 3,51,167.64,68,Woman
+OQ44,9,25,10,3 to 4,I eat anything with no exclusions (omnivore),,No,No,Two,0,1 to 3,0,26,170.18,68,Woman
+BC67,6,8,30,3 to 4,Vegetarian,,No,No,One,1 to 3,1 to 3,0,19,172.72,78.5,Man
+BR02,7,15,35,3 to 4,I eat anything except red meat,,No,No,One,1 to 3,1 to 3,0,24,154.94,49,Nonbinary
+DI36,6,20,30,3 to 4,I eat anything with no exclusions (omnivore),,No,No,Two,0,1 to 3,0,21,177.8,77.6,Man
+BD00,5,8,20,3 to 4,I eat anything with no exclusions (omnivore),,No,No,One,1 to 3,4 to 6,0,19,160.02,59,Woman
