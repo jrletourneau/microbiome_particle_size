@@ -39,6 +39,9 @@ theme_set(theme_bw() +
                   axis.ticks = element_line(color = "black"),
                   plot.title = element_text(hjust = 0.5)))
 
+## Favorite palette
+paired_palette <- brewer.pal(n = 12, "Paired")
+
 # Define functions
 ## Omit reads with obvious aggregation (particles greater than filter size detected)
 omit_aggregates <- function(df) {
