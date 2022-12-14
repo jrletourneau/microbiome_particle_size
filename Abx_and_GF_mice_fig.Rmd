@@ -319,7 +319,7 @@ figS9_patch <- plot_grid(z3 +
                           ncol = 1, rel_heights = c(3.3, 5),
                           labels = c("A", ""), label_fontface = "plain")
 
-ggsave("plots/figS9.png", figS9_patch, height = 9.5, width = 8)
+#ggsave("plots/figS9.png", figS9_patch, height = 9.5, width = 8)
 
 
 
