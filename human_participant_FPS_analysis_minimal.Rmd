@@ -216,6 +216,8 @@ fps_pca_plot <- autoplot(fps_pca, data = all_bins_spread, colour = "participant"
                box.padding = grid::unit(rep(0, 4), "pt"), inherit.aes = F)
 #ggsave("plots/baseline_FPS_PCA.png", fps_pca_plot, height = 4, width = 5)
 
+fps_pca_plot
+
 
 ```
 
@@ -593,6 +595,8 @@ tax_plot <- melty %>%
  scale_color_brewer(palette = "Set1") +
  facet_wrap(~binom, scales = "free", ncol = 1) +
  theme(strip.text = element_markdown())
+
+tax_plot
 
 
 ```
