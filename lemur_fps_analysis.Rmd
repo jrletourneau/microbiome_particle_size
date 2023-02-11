@@ -1,0 +1,32 @@
+---
+title: "Lemur FPS analysis"
+output: html_notebook
+---
+
+
+# Load libraries
+```{r}
+# Plotting
+library(tidyverse)
+library(ggtext)
+library(cowplot)
+
+# Stats
+library(lme4)
+library(lmerTest)
+
+theme_set(theme_bw() +
+            theme(axis.text = element_text(color = "black"),
+                  axis.ticks = element_line(color = "black"),
+                  plot.title = element_text(hjust = 0.5)))
+
+set.seed(1234)
+
+
+```
+
+# Load data
+```{r}
+
+```
+
