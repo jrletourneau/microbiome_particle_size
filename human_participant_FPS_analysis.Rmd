@@ -30,7 +30,7 @@ theme_set(theme_bw() +
                   axis.ticks = element_line(color = "black"),
                   plot.title = element_text(hjust = 0.5)))
 
-set.seed(123)
+set.seed(1234)
 
 
 ```
@@ -140,7 +140,7 @@ soil_plot <- ggplot(data = USDA, aes(y = Clay, x = Sand, z = Silt)) +
   theme_clockwise() +
   labs(yarrow = "Clay (%)",
        zarrow = "Silt (%)",
-       xarrow = "Sand(%)") +
+       xarrow = "Sand (%)") +
   guides(fill = "none") +
   scale_fill_manual(values = c(rep("black", 2), paired_palette[2], paired_palette[6],
                                rep("black", 10))) +
@@ -161,7 +161,7 @@ soil_chew_plot <- ggplot(data = USDA, aes(y = Clay, x = Sand, z = Silt)) +
   theme_clockwise() +
   labs(yarrow = "Clay (%)",
        zarrow = "Silt (%)",
-       xarrow = "Sand(%)",
+       xarrow = "Sand (%)",
        color = "Week") +
   guides(fill = "none") +
   scale_color_brewer(palette = "Set1") +
@@ -313,6 +313,7 @@ gap_stat <- clusGap(all_bins_spread_data, FUN = kmeans, nstart = 25, K.max = 10,
 #sos_plot + gap_stat
 
 #perform k-means clustering with k = 4 clusters
+set.seed(1234)
 km <- kmeans(all_bins_spread_data, centers = 5, nstart = 25)
 
 k_clust <- fviz_cluster(km, data = all_bins_spread_data, labelsize = NA, main = F,
@@ -395,14 +396,16 @@ soil_plot2 <- ggplot(data = USDA, aes(y = Clay, x = Sand, z = Silt)) +
   geom_point(data = soil_all2, aes(x = Sand, y = Clay, z = Silt, fill = factor(cluster)),
              color = "black", shape = 21, alpha = 0.5, size = 2, inherit.aes = F) +
   scale_fill_manual(values = c("#F8766D", "#A3A500", "#00BF7D", "#00B0F6", "#E76BF3",
-                               rep("black", 12)))
+                               rep("black", 12))) +
   theme_showarrows() +
   theme_clockwise() +
   labs(yarrow = "Clay (%)",
        zarrow = "Silt (%)",
-       xarrow = "Sand(%)") +
+       xarrow = "Sand (%)") +
   guides(fill = "none") +
   theme(tern.axis.arrow = element_line(size = 1), legend.position = "top")
+
+#ggsave("plots/figS2_soil2.png", soil_plot2, height = 5, width = 5)
   
 
 ```
