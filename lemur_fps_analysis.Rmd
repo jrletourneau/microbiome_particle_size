@@ -23,10 +23,50 @@ theme_set(theme_bw() +
 set.seed(1234)
 
 
+
 ```
 
 # Load data
 ```{r}
+lemur_key <- read.csv("data/lemur_key.csv")
+
+lemur_fps <- read.csv("data/lemurs.csv") %>%
+  mutate(Sample.Name = gsub("lemurs.", "", Sample.Name)) %>%
+  left_join(lemur_key, by = c("Sample.Name" = "tube_no")) %>%
+  relocate(name:common_name, .after = Sample.Name)
+
+summarize_fps_D <- function(df) {
+  df %>%
+    dplyr::select(Sample.Name:Dx..90.) %>%
+    gather(key=D, value=val, (ncol(.)-2):ncol(.)) %>%
+    mutate(D = case_when(D == "Dx..10." ~ "10th percentile",
+                         D == "Dx..50." ~ "50th percentile (median)",
+                         D == "Dx..90." ~ "90th percentile")) %>%
+    group_by(Sample.Name, name, species, common_name, D) %>%
+    dplyr::summarize(mean=mean(val), se=sd(val)/sqrt(length(val)))
+}
+
+summarize_fps_all_bins <- function(df) {
+  df %>%
+    gather(key=size, value=volume, (ncol(.)-100):ncol(.)) %>%
+    mutate(size = as.numeric(substr(size, 2, nchar(size)))) %>%
+    group_by(Sample.Name, name, species, common_name, size) %>%
+    dplyr::summarize(mean=mean(volume)) %>%
+    ungroup() %>%
+    as.data.frame()
+}
+
+lemur_D <- summarize_fps_D(lemur_fps)
+lemur_all_bins <- summarize_fps_all_bins(lemur_fps)
+
+```
+
+# Summarize medians
+```{r}
+lemur_D50_median <- lemur_D %>%
+  dplyr::select(!is.na(species) & D == "50th percentile (median)") %>%
+  group_by(species, common_name) %>%
+  summarize(mean2 = mean(mean), se = df(mean)/sqrt(length(mean)))
 
 ```
 

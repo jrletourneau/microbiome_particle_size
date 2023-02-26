@@ -1762,7 +1762,7 @@ display: none;
 <h1>Load libraries</h1>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBQbG90dGluZ1xubGlicmFyeSh0aWR5dmVyc2UpXG5saWJyYXJ5KGdndGV4dClcbmxpYnJhcnkoY293cGxvdClcblxuIyBTdGF0c1xubGlicmFyeShsbWU0KVxubGlicmFyeShsbWVyVGVzdClcblxudGhlbWVfc2V0KHRoZW1lX2J3KCkgK1xuICAgICAgICAgICAgdGhlbWUoYXhpcy50ZXh0ID0gZWxlbWVudF90ZXh0KGNvbG9yID0gXCJibGFja1wiKSxcbiAgICAgICAgICAgICAgICAgIGF4aXMudGlja3MgPSBlbGVtZW50X2xpbmUoY29sb3IgPSBcImJsYWNrXCIpLFxuICAgICAgICAgICAgICAgICAgcGxvdC50aXRsZSA9IGVsZW1lbnRfdGV4dChoanVzdCA9IDAuNSkpKVxuXG5zZXQuc2VlZCgxMjM0KVxuXG5cbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBQbG90dGluZ1xubGlicmFyeSh0aWR5dmVyc2UpXG5saWJyYXJ5KGdndGV4dClcbmxpYnJhcnkoY293cGxvdClcblxuIyBTdGF0c1xubGlicmFyeShsbWU0KVxubGlicmFyeShsbWVyVGVzdClcblxudGhlbWVfc2V0KHRoZW1lX2J3KCkgK1xuICAgICAgICAgICAgdGhlbWUoYXhpcy50ZXh0ID0gZWxlbWVudF90ZXh0KGNvbG9yID0gXCJibGFja1wiKSxcbiAgICAgICAgICAgICAgICAgIGF4aXMudGlja3MgPSBlbGVtZW50X2xpbmUoY29sb3IgPSBcImJsYWNrXCIpLFxuICAgICAgICAgICAgICAgICAgcGxvdC50aXRsZSA9IGVsZW1lbnRfdGV4dChoanVzdCA9IDAuNSkpKVxuXG5zZXQuc2VlZCgxMjM0KVxuXG5cblxuYGBgIn0= -->
 <pre class="r"><code># Plotting
 library(tidyverse)
 library(ggtext)
@@ -1787,12 +1787,51 @@ set.seed(1234)
 <h1>Load data</h1>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGVtdXJfZnBzIDwtIHJlYWQuY3N2KFwiZGF0YS9sZW11cnMuY3N2XCIpICU+JVxuICBtdXRhdGUoU2FtcGxlLk5hbWUgPSBnc3ViKFwibGVtdXJzLlwiLCBcIlwiLCBTYW1wbGUuTmFtZSkpICU+JVxuICBsZWZ0X2pvaW4obGVtdXJfa2V5LCBieSA9IGMoXCJTYW1wbGUuTmFtZVwiID0gXCJ0dWJlX25vXCIpKSAlPiVcbiAgcmVsb2NhdGUobmFtZTpjb21tb25fbmFtZSwgLmFmdGVyID0gU2FtcGxlLk5hbWUpXG5cbmBgYCJ9 -->
+<pre class="r"><code>lemur_fps &lt;- read.csv(&quot;data/lemurs.csv&quot;) %&gt;%
+  mutate(Sample.Name = gsub(&quot;lemurs.&quot;, &quot;&quot;, Sample.Name)) %&gt;%
+  left_join(lemur_key, by = c(&quot;Sample.Name&quot; = &quot;tube_no&quot;)) %&gt;%
+  relocate(name:common_name, .after = Sample.Name)
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gYGxlZnRfam9pbigpYDpcbiEgQ2FuJ3Qgam9pbiBvbiBgeCRTYW1wbGUuTmFtZWAgeCBgeSRTYW1wbGUuTmFtZWAgYmVjYXVzZSBvZiBpbmNvbXBhdGlibGUgdHlwZXMuXG7ihLkgYHgkU2FtcGxlLk5hbWVgIGlzIG9mIHR5cGUgPGNoYXJhY3Rlcj4+Llxu4oS5IGB5JFNhbXBsZS5OYW1lYCBpcyBvZiB0eXBlIDxpbnRlZ2VyPj4uXG5CYWNrdHJhY2U6XG4gMS4gLi4uICU+JSByZWxvY2F0ZShuYW1lOmNvbW1vbl9uYW1lLCAuYWZ0ZXIgPSBTYW1wbGUuTmFtZSlcbiA0LiBkcGx5cjo6OmxlZnRfam9pbi5kYXRhLmZyYW1lKC4sIGxlbXVyX2tleSwgYnkgPSBjKFNhbXBsZS5OYW1lID0gXCJ0dWJlX25vXCIpKVxuIn0= -->
+<pre><code>Error in `left_join()`:
+! Can&#39;t join on `x$Sample.Name` x `y$Sample.Name` because of incompatible types.
+ℹ `x$Sample.Name` is of type &lt;character&gt;&gt;.
+ℹ `y$Sample.Name` is of type &lt;integer&gt;&gt;.
+Backtrace:
+ 1. ... %&gt;% relocate(name:common_name, .after = Sample.Name)
+ 4. dplyr:::left_join.data.frame(., lemur_key, by = c(Sample.Name = &quot;tube_no&quot;))</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="summarize-medians" class="section level1">
+<h1>Summarize medians</h1>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGVtdXJfRDUwX21lZGlhbiA8LSBsZW11cl9EICU+JVxuICBkcGx5cjo6c2VsZWN0KCFpcy5uYShzcGVjaWVzKSAmIEQgPT0gXCI1MHRoIHBlcmNlbnRpbGUgKG1lZGlhbilcIikgJT4lXG4gIGdyb3VwX2J5KHNwZWNpZXMsIGNvbW1vbl9uYW1lKSAlPiVcbiAgc3VtbWFyaXplKG1lYW4yID0gbWVhbihtZWFuKSwgc2UgPSBkZihtZWFuKS9zcXJ0KGxlbmd0aChtZWFuKSkpXG5cbmBgYCJ9 -->
+<pre class="r"><code>lemur_D50_median &lt;- lemur_D %&gt;%
+  dplyr::select(!is.na(species) &amp; D == &quot;50th percentile (median)&quot;) %&gt;%
+  group_by(species, common_name) %&gt;%
+  summarize(mean2 = mean(mean), se = df(mean)/sqrt(length(mean)))
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gYGRwbHlyOjpzZWxlY3QoKWA6XG4hIG9iamVjdCAnc3BlY2llcycgbm90IGZvdW5kXG5CYWNrdHJhY2U6XG4gIDEuIC4uLiAlPiUgLi4uXG4gMzAuIGJhc2U6Oi5oYW5kbGVTaW1wbGVFcnJvciguLi4pXG4gMzEuIHJsYW5nIGgoc2ltcGxlRXJyb3IobXNnLCBjYWxsKSlcbiAzMi4gaGFuZGxlcnNbWzFMXV0oY25kKVxuIn0= -->
+<pre><code>Error in `dplyr::select()`:
+! object &#39;species&#39; not found
+Backtrace:
+  1. ... %&gt;% ...
+ 30. base::.handleSimpleError(...)
+ 31. rlang h(simpleError(msg, call))
+ 32. handlers[[1L]](cnd)</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 </div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkxlbXVyIEZQUyBhbmFseXNpcyINCm91dHB1dDogaHRtbF9ub3RlYm9vaw0KLS0tDQoNCg0KIyBMb2FkIGxpYnJhcmllcw0KYGBge3J9DQojIFBsb3R0aW5nDQpsaWJyYXJ5KHRpZHl2ZXJzZSkNCmxpYnJhcnkoZ2d0ZXh0KQ0KbGlicmFyeShjb3dwbG90KQ0KDQojIFN0YXRzDQpsaWJyYXJ5KGxtZTQpDQpsaWJyYXJ5KGxtZXJUZXN0KQ0KDQp0aGVtZV9zZXQodGhlbWVfYncoKSArDQogICAgICAgICAgICB0aGVtZShheGlzLnRleHQgPSBlbGVtZW50X3RleHQoY29sb3IgPSAiYmxhY2siKSwNCiAgICAgICAgICAgICAgICAgIGF4aXMudGlja3MgPSBlbGVtZW50X2xpbmUoY29sb3IgPSAiYmxhY2siKSwNCiAgICAgICAgICAgICAgICAgIHBsb3QudGl0bGUgPSBlbGVtZW50X3RleHQoaGp1c3QgPSAwLjUpKSkNCg0Kc2V0LnNlZWQoMTIzNCkNCg0KDQpgYGANCg0KIyBMb2FkIGRhdGENCmBgYHtyfQ0KDQpgYGANCg0K</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkxlbXVyIEZQUyBhbmFseXNpcyINCm91dHB1dDogaHRtbF9ub3RlYm9vaw0KLS0tDQoNCg0KIyBMb2FkIGxpYnJhcmllcw0KYGBge3J9DQojIFBsb3R0aW5nDQpsaWJyYXJ5KHRpZHl2ZXJzZSkNCmxpYnJhcnkoZ2d0ZXh0KQ0KbGlicmFyeShjb3dwbG90KQ0KDQojIFN0YXRzDQpsaWJyYXJ5KGxtZTQpDQpsaWJyYXJ5KGxtZXJUZXN0KQ0KDQp0aGVtZV9zZXQodGhlbWVfYncoKSArDQogICAgICAgICAgICB0aGVtZShheGlzLnRleHQgPSBlbGVtZW50X3RleHQoY29sb3IgPSAiYmxhY2siKSwNCiAgICAgICAgICAgICAgICAgIGF4aXMudGlja3MgPSBlbGVtZW50X2xpbmUoY29sb3IgPSAiYmxhY2siKSwNCiAgICAgICAgICAgICAgICAgIHBsb3QudGl0bGUgPSBlbGVtZW50X3RleHQoaGp1c3QgPSAwLjUpKSkNCg0Kc2V0LnNlZWQoMTIzNCkNCg0KDQoNCmBgYA0KDQojIExvYWQgZGF0YQ0KYGBge3J9DQpsZW11cl9rZXkgPC0gcmVhZC5jc3YoImRhdGEvbGVtdXJfa2V5LmNzdiIpDQoNCmxlbXVyX2ZwcyA8LSByZWFkLmNzdigiZGF0YS9sZW11cnMuY3N2IikgJT4lDQogIG11dGF0ZShTYW1wbGUuTmFtZSA9IGdzdWIoImxlbXVycy4iLCAiIiwgU2FtcGxlLk5hbWUpKSAlPiUNCiAgbGVmdF9qb2luKGxlbXVyX2tleSwgYnkgPSBjKCJTYW1wbGUuTmFtZSIgPSAidHViZV9ubyIpKSAlPiUNCiAgcmVsb2NhdGUobmFtZTpjb21tb25fbmFtZSwgLmFmdGVyID0gU2FtcGxlLk5hbWUpDQoNCnN1bW1hcml6ZV9mcHNfRCA8LSBmdW5jdGlvbihkZikgew0KICBkZiAlPiUNCiAgICBkcGx5cjo6c2VsZWN0KFNhbXBsZS5OYW1lOkR4Li45MC4pICU+JQ0KICAgIGdhdGhlcihrZXk9RCwgdmFsdWU9dmFsLCAobmNvbCguKS0yKTpuY29sKC4pKSAlPiUNCiAgICBtdXRhdGUoRCA9IGNhc2Vfd2hlbihEID09ICJEeC4uMTAuIiB+ICIxMHRoIHBlcmNlbnRpbGUiLA0KICAgICAgICAgICAgICAgICAgICAgICAgIEQgPT0gIkR4Li41MC4iIH4gIjUwdGggcGVyY2VudGlsZSAobWVkaWFuKSIsDQogICAgICAgICAgICAgICAgICAgICAgICAgRCA9PSAiRHguLjkwLiIgfiAiOTB0aCBwZXJjZW50aWxlIikpICU+JQ0KICAgIGdyb3VwX2J5KFNhbXBsZS5OYW1lLCBuYW1lLCBzcGVjaWVzLCBjb21tb25fbmFtZSwgRCkgJT4lDQogICAgZHBseXI6OnN1bW1hcml6ZShtZWFuPW1lYW4odmFsKSwgc2U9c2QodmFsKS9zcXJ0KGxlbmd0aCh2YWwpKSkNCn0NCg0Kc3VtbWFyaXplX2Zwc19hbGxfYmlucyA8LSBmdW5jdGlvbihkZikgew0KICBkZiAlPiUNCiAgICBnYXRoZXIoa2V5PXNpemUsIHZhbHVlPXZvbHVtZSwgKG5jb2woLiktMTAwKTpuY29sKC4pKSAlPiUNCiAgICBtdXRhdGUoc2l6ZSA9IGFzLm51bWVyaWMoc3Vic3RyKHNpemUsIDIsIG5jaGFyKHNpemUpKSkpICU+JQ0KICAgIGdyb3VwX2J5KFNhbXBsZS5OYW1lLCBuYW1lLCBzcGVjaWVzLCBjb21tb25fbmFtZSwgc2l6ZSkgJT4lDQogICAgZHBseXI6OnN1bW1hcml6ZShtZWFuPW1lYW4odm9sdW1lKSkgJT4lDQogICAgdW5ncm91cCgpICU+JQ0KICAgIGFzLmRhdGEuZnJhbWUoKQ0KfQ0KDQpsZW11cl9EIDwtIHN1bW1hcml6ZV9mcHNfRChsZW11cl9mcHMpDQpsZW11cl9hbGxfYmlucyA8LSBzdW1tYXJpemVfZnBzX2FsbF9iaW5zKGxlbXVyX2ZwcykNCg0KYGBgDQoNCiMgU3VtbWFyaXplIG1lZGlhbnMNCmBgYHtyfQ0KbGVtdXJfRDUwX21lZGlhbiA8LSBsZW11cl9EICU+JQ0KICBkcGx5cjo6c2VsZWN0KCFpcy5uYShzcGVjaWVzKSAmIEQgPT0gIjUwdGggcGVyY2VudGlsZSAobWVkaWFuKSIpICU+JQ0KICBncm91cF9ieShzcGVjaWVzLCBjb21tb25fbmFtZSkgJT4lDQogIHN1bW1hcml6ZShtZWFuMiA9IG1lYW4obWVhbiksIHNlID0gZGYobWVhbikvc3FydChsZW5ndGgobWVhbikpKQ0KDQpgYGANCg0K</div>
 
 
 
