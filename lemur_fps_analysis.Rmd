@@ -30,10 +30,16 @@ set.seed(1234)
 ```{r}
 lemur_key <- read.csv("data/lemur_key.csv")
 
+omit_aggregates <- function(df) {
+  df[rowSums(df[,which(colnames(df) == "X2100"):which(colnames(df) == "X3500")]) == 0,] %>%
+    return()
+}
+
 lemur_fps <- read.csv("data/lemurs.csv") %>%
-  mutate(Sample.Name = gsub("lemurs.", "", Sample.Name)) %>%
+  mutate(Sample.Name = gsub("lemurs.", "", Sample.Name) %>% as.numeric()) %>%
   left_join(lemur_key, by = c("Sample.Name" = "tube_no")) %>%
-  relocate(name:common_name, .after = Sample.Name)
+  relocate(name:common_name, .after = Sample.Name) %>%
+  omit_aggregates()
 
 summarize_fps_D <- function(df) {
   df %>%
@@ -61,12 +67,36 @@ lemur_all_bins <- summarize_fps_all_bins(lemur_fps)
 
 ```
 
-# Summarize medians
+# Summarize medians and plot
 ```{r}
-lemur_D50_median <- lemur_D %>%
-  dplyr::select(!is.na(species) & D == "50th percentile (median)") %>%
+lemur_D50 <- lemur_D %>%
+  dplyr::filter(D == "50th percentile (median)")
+
+lemur_D50_summary <- lemur_D50 %>%
   group_by(species, common_name) %>%
-  summarize(mean2 = mean(mean), se = df(mean)/sqrt(length(mean)))
+  summarize(mean2 = mean(mean), se = sd(mean)/sqrt(length(mean)))
+
+fritz_summary <- data.frame(species = c("Lemur catta", "Propithecus coquereli", "Varecia variegata"),
+                            mean2 = c(1913.7, NA, 2113.9),
+                            sd = c(624.8, NA, 833.5),
+                            n = c(3, NA, 4)) %>%
+  mutate(se = sd/sqrt(n))
+
+lemur_D50_plot <- ggplot(lemur_D50, aes(x = mean, y = species)) +
+  geom_point(position=position_jitter(width = 0, height = 0.05), alpha=0.25) +
+  geom_errorbar(data = lemur_D50_summary, aes(y=species, xmin=mean2, xmax=mean2),
+                color = "red", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = lemur_D50_summary, aes(y=species, xmin=mean2-se, xmax=mean2+se),
+                width=0.25, inherit.aes = F) +
+  geom_errorbar(data = fritz_summary, aes(y=species, xmin=mean2, xmax=mean2),
+                color = "blue", width=0.5, inherit.aes = F) +
+  geom_errorbar(data = fritz_summary, aes(y=species, xmin=mean2-se, xmax=mean2+se),
+                color = "lightblue", width=0.25, inherit.aes = F) +
+  labs(x = "Median FPS (μm)", y = "Species") +
+  scale_x_log10()
 
 ```
+
+
+
 
