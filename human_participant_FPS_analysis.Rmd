@@ -187,7 +187,9 @@ baseline_order <- D_all %>%
   pull(participant)
 
 D_baseline_plot <- D_all %>%
-  mutate(participant = factor(participant, levels = baseline_order)) %>%
+  mutate(participant = factor(participant, levels = baseline_order),
+         cohort = case_when(cohort == "Cohort 1" ~ "Cohort 2",
+                            cohort == "Cohort 2" ~ "Cohort 1")) %>%
   ggplot(aes(x = mean, y = participant, group = participant, color = cohort)) +
   geom_point() +
   geom_line(linetype="dotted") +
@@ -491,7 +493,9 @@ diversity_plot <- ggplot(diversity, aes(x = median_FPS, y = value, color = cohor
   facet_wrap(~measure, scales = "free_y") +
   scale_x_log10()
 
-diversity_summary_plot <- ggplot(diversity_summary,
+diversity_summary_plot <- ggplot(diversity_summary %>%
+                                   mutate(cohort = case_when(cohort == "Cohort 1" ~ "Cohort 2",
+                            cohort == "Cohort 2" ~ "Cohort 1")),
                                  aes(x = median_FPS, y = value, color = cohort)) +
   geom_point() +
   scale_color_brewer(palette = "Set1") +
@@ -515,7 +519,9 @@ cor.test(diversity_summary[diversity_summary$measure == "Observed",]$value,
 # Observed = 0.1192, rho = 0.1802572
 # Shannon p = 0.5721, rho = -0.06570062 
 
-diversity_summary_reads_plot <- ggplot(diversity_summary,
+diversity_summary_reads_plot <- ggplot(diversity_summary %>%
+                                         mutate(cohort = case_when(cohort == "Cohort 1" ~ "Cohort 2",
+                            cohort == "Cohort 2" ~ "Cohort 1")),
                                  aes(x = reads, y = value, color = cohort)) +
   geom_point() +
   scale_color_brewer(palette = "Set1") +
@@ -655,7 +661,9 @@ bray <- distance(ps_baseline, method = "bray") %>% as.matrix()
 # cohort        1    4.034 0.07794 52.1659  1e-04 ***
 # participant  74   37.915 0.73257  6.6257  1e-04 ***
 
-nmds_plot <- ggplot(nmds, aes(x=MDS1, y=MDS2, size = median_FPS, color = cohort)) +
+nmds_plot <- ggplot(nmds %>%
+                      mutate(cohort = case_when(cohort == "Cohort 1" ~ "Cohort 2",
+                            cohort == "Cohort 2" ~ "Cohort 1")), aes(x=MDS1, y=MDS2, size = median_FPS, color = cohort)) +
   geom_point(alpha = 0.5) +
   scale_color_brewer(palette = "Set1") +
   labs(x="NMDS1", y = "NMDS2", size="Median FPS (μm)", color = "Cohort") +
@@ -753,7 +761,7 @@ clr <- aldex.clr(otu_flip, mm, mc.samples = 128, denom ="all")
 #  dplyr::select(!contains("participant"))
 # all NS for median_FPS; some p < 0.05 for cohort
 
-corr.test <- aldex.corr(clr,cont.var = samdf_baseline[rownames(as.data.frame(as.matrix(ps_baseline_filt@sam_data))),]$median_FPS)
+#corr.test <- aldex.corr(clr,cont.var = samdf_baseline[rownames(as.data.frame(as.matrix(ps_baseline_filt@sam_data))),]$median_FPS)
 #write.csv(corr.test, "plots/aldex_corrtest_baseline_medianFPS.csv")
 
 corr.test <- read.csv("plots/aldex_corrtest_baseline_medianFPS.csv", row.names = 1)
@@ -767,6 +775,7 @@ conds <- samdf_baseline[rownames(as.data.frame(as.matrix(ps_baseline_filt@sam_da
 #kw.test <- aldex.clr(otu_flip, conds, mc.samples=128, denom="all") %>%
 #  aldex.kw()
 #write.csv(kw.test, "plots/aldex_kw_cluster.csv")
+kw.test <- read.csv("plots/aldex_kw_cluster.csv", row.names = 1)
 
 # 29 / 298 KW.eBH p < 0.05
 
@@ -941,7 +950,8 @@ scfa_signif_labels <- data.frame(cluster = rep(1:5, 5),
 # Mean + se
 scfa_all_summary <- scfa_all %>%
   group_by(cluster, scfa) %>%
-  summarize(mean = mean(conc), se = sd(conc)/sqrt(length(conc)))
+  summarize(mean = mean(conc), se = sd(conc)/sqrt(length(conc)),
+            n = length(conc))
 
 scfa_total_plot <- scfa_all %>%
   filter(scfa == "Total") %>%
@@ -1273,21 +1283,23 @@ demo_sex_plot <- ggplot(demo_all, aes(x = Sex, y = median_FPS)) +
 
 ## Moisture content
 ```{r}
-moisture <- read.csv("data/moisture_content.csv") %>%
+moisture <- read.csv("data/moisture_content.csv") %>% 
   filter(complete.cases(.)) %>%
   left_join(dplyr::select(kdata, sample, median_FPS, cluster)) %>%
   mutate(moisture = 100 * moisture)
 
 moisture_summary <- moisture %>%
   group_by(cluster) %>%
-  summarize(mean = mean(moisture), se = sd(moisture)/sqrt(length(moisture)))
+  dplyr::summarize(mean = mean(moisture),
+                   se = sd(moisture)/sqrt(length(moisture)),
+                   n = length(moisture))
 
 moisture %>%
   aov(moisture ~ factor(cluster) + participant, data = .) %>%
-  #TukeyHSD(which = "factor(cluster)")
+  TukeyHSD(which = "factor(cluster)")
   summary()
 # ANOVA of cluster + participant: cluster p = 1.59e-06, participant p = 0.00346
-# TukeyHSD signif for 1-2, 1-3, 2-4, 3-4 --> a, b, b, a, ab
+# TukeyHSD signif for 2-3, 2-5, 3-4, 4-5 --> ab, a, b, a, b
 
 moisture_plot <- ggplot(moisture, aes(x = cluster, y = moisture)) +
   geom_point(position = position_jitter(height = 0, width = 0.05), alpha = 0.5) +
@@ -1295,8 +1307,8 @@ moisture_plot <- ggplot(moisture, aes(x = cluster, y = moisture)) +
                 color = "red", width=0.5, inherit.aes = F) +
   geom_errorbar(data = moisture_summary, aes(x=cluster, ymin=mean-se, ymax=mean+se),
                 width=0.25, inherit.aes = F) + 
-  annotate(geom = "text", x = 1:5, y = c(90, 87, 90, 85, 88),
-           label = c("a", "b", "b", "a", "ab")) +
+  annotate(geom = "text", x = 1:5, y = c(88, 85, 87, 90, 90),
+           label = c("ab", "a", "b", "a", "b")) +
   labs(x = "Cluster", y = "Fecal moisture content (%)")
 #ggsave("plots/moisture_cluster_plot.png", moisture_plot, height = 3, width = 4)
 
@@ -1505,7 +1517,7 @@ fps_curves_trnL <- all_bins_all %>%
   column_to_rownames("sample")
 
 fps_curves_trnL_data <- fps_curves_trnL %>%
-  dplyr::select(6:106) %>%
+  dplyr::select(6:ncol(.)) %>%
   select_if(colSums(.) > 0)
 
 # mantel.onestep(as.data.frame(trnL@otu_table), fps_curves_trnL_data) # p = 0.2259
@@ -1519,6 +1531,8 @@ fps_curves_trnL_data <- fps_curves_trnL %>%
 
 
 ```
+
+
 ## Check out intra-individual variation
 ```{r}
 # Select highest and lowest FPS value for each participant
@@ -2346,12 +2360,15 @@ figS5_patch <- plot_grid(figS5_top, signif_taxa_plot,
 #ggsave("plots/figS5.png", figS5_patch, height = 8, width = 10)
 
 
-# Figure 3 - SCFA and diet
-fig3_patch <- plot_grid(scfa_total_plot, scfa_indiv_plot,
-                        ncol = 1, rel_heights = c(2, 3),
-                        labels = c("A", "B"), label_fontface = "plain")
+# Figure 5 - SCFA and FPS cluster
+fig5_right <- plot_grid(scfa_total_plot, moisture_plot,
+                        ncol = 1,
+                        labels = c("B", "C"), label_fontface = "plain")
+fig5_patch <- plot_grid(scfa_indiv_plot, fig5_right,
+                        ncol = 2, rel_widths = c(3,2),
+                        labels = c("A", ""), label_fontface = "plain")
 
-#ggsave("plots/fig3.png", fig3_patch, height = 8.4, width = 6)
+#ggsave("plots/fig5.png", fig5_patch, height = 7, width = 10)
 
 # Figure S6 - FPS relationship to demographics, SCFA
 # Add in:
