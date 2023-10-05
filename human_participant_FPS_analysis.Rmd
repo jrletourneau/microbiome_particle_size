@@ -1367,20 +1367,22 @@ taxa_names(trnL) <- paste0("ASV ", 1:ntaxa(trnL))
 
 # Ordinate
 ord_trnL <- ordinate(trnL, method="NMDS", distance="bray")
-ord_plot_trnL <- plot_ordination(trnL, ord_trnL, color="median_FPS", title="Bray NMDS") +
-  scale_color_distiller(palette = "Spectral")
-
-#    labs(color = "Week") + theme(plot.title = element_blank()) +
-#    geom_textbox(data = data.frame(x=-1, y = 0.8, label = "PERMANOVA<br>*R*<sup>2</sup> = #0.0015<br>*p* = 0.41"),
-#               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
-#               box.padding = grid::unit(rep(0, 4), "pt"), inherit.aes = F)
+ord_plot_trnL <- plot_ordination(trnL, ord_trnL, justDF = T) %>%
+  ggplot(aes(x = NMDS1, y = NMDS2, size = median_FPS)) +
+  geom_point(alpha = 0.5) +
+  labs(size = "Median FPS (μm)") +
+  ggtitle("FoodSeq trnL composition") +
+  geom_textbox(data = data.frame(x=-0.5, y = 0.35,
+                                 label = "PERMANOVA<br>*R*<sup>2</sup> =0.022<br>*p* = 0.41"),
+               aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
+               box.padding = grid::unit(rep(0, 4), "pt"), inherit.aes = F)
 
 # PERMANOVA
-samdf_trnL <- trnL@sam_data %>% as.matrix() %>% as.data.frame()
-# bray_trnL <- distance(trnL, method = "bray") %>% as.matrix()
-# adonis2(formula = bray_trnL ~ median_FPS, data = samdf_trnL,
-#         strata=samdf_trnL$participant, permutations=9999, method = "bray")
-# can't get this to run...
+samdf_trnL <- trnL@sam_data %>% as.matrix() %>% as.data.frame() %>%
+  mutate(median_FPS = as.numeric(median_FPS))
+bray_trnL <- distance(trnL, method = "bray") %>% as.matrix()
+adonis2(formula = bray_trnL ~ median_FPS, data = samdf_trnL,
+         strata=samdf_trnL$participant, permutations=999, method = "bray")
 
 # omitting ASVs not in database yields 78 taxa
 trnL_melt <- psmelt(trnL) %>%
@@ -2005,7 +2007,7 @@ ord_plot2 <- plot_ordination(ps_epsom, ord.nmds.bray2, color="week", title="Bray
 
 # PERMANOVA
 samdf <- ps_epsom@sam_data %>% as.matrix() %>% as.data.frame()
-#bray <- distance(ps_epsom, method = "bray") %>% as.matrix()
+bray_epsom <- distance(ps_epsom, method = "bray") %>% as.matrix()
 #adonis2(formula = bray ~ day,  data = samdf[rownames(bray),],
 #        strata=samdf[rownames(bray),]$participant, permutations=9999, method = "bray")
 #           Df SumOfSqs      R2     F Pr(>F)
@@ -2039,7 +2041,7 @@ for(r in 1:nrow(bray_select)) {
     rownames()
   
   # On bray dataframe, get distance between current sample and relevant first sample
-  bray_select$dist[r] <- bray[rownames(bray_select)[r], relevant_first_sample]
+  bray_select$dist[r] <- bray_epsom[rownames(bray_select)[r], relevant_first_sample]
   
 }
 
@@ -2097,7 +2099,7 @@ for(r in 1:nrow(bray_select2)) {
     rownames()
   
   # On bray dataframe, get distance between current sample and relevant first sample
-  bray_select2$dist[r] <- bray[rownames(bray_select2)[r], relevant_first_sample]
+  bray_select2$dist[r] <- bray_epsom[rownames(bray_select2)[r], relevant_first_sample]
   
 }
 
@@ -2147,7 +2149,7 @@ for(r in 1:nrow(bray_change)) {
     rownames()
   
   # On bray dataframe, get distance between current sample and relevant comparison sample
-  bray_change$dist[r] <- bray[rownames(bray_change)[r], previous_sample]
+  bray_change$dist[r] <- bray_epsom[rownames(bray_change)[r], previous_sample]
   
 }
 
@@ -2260,8 +2262,7 @@ chewing_averages <- cohort2_median %>%
   summarize(mean = mean(median_FPS))
 
 exit_plus_FPS <- exit %>%
-  left_join(chewing_averages) %>%
-  mutate(Q10 = factor(Q10))
+  left_join(chewing_averages)
 #  mutate(Q10 = case_when(Q10 %in% 1:2 ~ "1 to 2",
 #                         Q10 %in% 3:4 ~ "3 to 4",
 #                         Q10 %in% 5:7 ~ "5 to 7"))
@@ -2393,32 +2394,28 @@ figS6_patch <- plot_grid(scfa_prop_plot, figS6_bottom,
 
 
 # Figure 4 - Chewing intervention
-fig4_Lcorner <- plot_grid(median_plot +
+
+fig4_bottom <- plot_grid(median_plot +
                           theme(legend.position = "none"),
-                         chew_scfa_total_plot +
-                          theme(legend.position = "none"),
-                         ncol = 1,
+                         ord_plot2 +
+                          theme(legend.position = "none"), 
+                         nrow = 1,
                          labels = c("B", "C"), label_fontface = "plain")
-
-fig4_Rcorner <- plot_grid(ord_plot2 +
-                          theme(legend.position = "none"),
-                         get_legend(ord_plot2),
-                         ncol = 1, rel_heights = c(3, 1.3),
-                         labels = c("D", ""), label_fontface = "plain")
-
-fig4_bottom <- plot_grid(fig4_Lcorner, fig4_Rcorner, 
-                         nrow = 1, rel_widths = c(3, 2.3),
-                         labels = c("", ""), label_fontface = "plain")
 
 fig4_patch <- plot_grid(exit_change_plot +
                           theme(legend.position = "none"),
                         fig4_bottom,
-                        ncol = 1, rel_heights = c(1.75, 3),
+                        get_legend(median_plot +
+                                     theme(legend.position = "bottom")),
+                        ncol = 1, rel_heights = c(2, 2, 0.25),
                         labels = c("A", "", ""), label_fontface = "plain")
 
-#ggsave("plots/fig4.png", fig4_patch, height = 8, width = 7)
+ggsave("plots/fig4.png", fig4_patch, height = 7, width = 7)
 
 # Figure S7 - additional data from chewing intervention - microbiome and SCFA
+
+chew_scfa_total_plot
+
 figS7_top <- plot_grid(fps_pca_plot_chew, diversity_plot + theme(legend.position = "none"),
                        nrow = 1, rel_widths = c(1.7, 2),
                        labels = c("A", "B"), label_fontface = "plain")
@@ -2429,11 +2426,20 @@ figS7_mid <- plot_grid(bray_plot + theme(legend.position = "none"),
                        nrow = 1,
                        labels = c("C", "D", "E"), label_fontface = "plain")
 
-figS7_patch <- plot_grid(figS7_top, figS7_mid,
-                         chew_scfa_plot + theme(legend.position = "none"),
-                         chew_scfa_prop_plot + theme(legend.position = "none"),
+figS7_next <- plot_grid(chew_scfa_total_plot +
+                          theme(legend.position = "none"),
+                        chew_scfa_plot +
+                          theme(legend.position = "none"),
+                        nrow = 1, rel_widths = c(1,2),
+                         labels = c("F", "G"),
+                         label_fontface = "plain")
+
+figS7_patch <- plot_grid(figS7_top, figS7_mid, figS7_next,
+                         chew_scfa_prop_plot +
+                           theme(legend.position = "none"),
                          nrow = 4,
-                         labels = c("", "", "F", "G"), label_fontface = "plain")
+                         labels = c("", "", "", "H"),
+                         label_fontface = "plain")
 
 #ggsave("plots/figS7.png", figS7_patch, height = 12, width = 10)
 
@@ -2450,11 +2456,15 @@ figS8_patch <- plot_grid(figS8_left, exit_plot,
 
 # Fig S10 - diet and FPS
 
-figS11_patch <- plot_grid(macro_corr_plot, diet_macro_pca_plot,
-                         ncol = 1, rel_heights = c(2.5, 1),
-                         labels = c("A", "B"), label_fontface = "plain")
+fig_dietFPS <- plot_grid(diet_macro_pca_plot + ggtitle("DHQ3 macronutrient composition"),
+                         ord_plot_trnL, ncol = 1,
+                         labels = c("B", "C"), label_fontface = "plain")
 
-#ggsave("plots/figS11.png", figS11_patch, height = 9, width = 6.2)
+figS11_patch <- plot_grid(macro_corr_plot, fig_dietFPS, 
+                         nrow = 1,
+                         labels = c("A", ""), label_fontface = "plain")
+
+ggsave("plots/figS11.png", figS11_patch, height = 9, width = 12)
 
 
 #ggsave("plots/median_plot_indiv.png", median_plot_indiv, height = 6, width = 7)
