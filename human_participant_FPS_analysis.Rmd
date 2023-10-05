@@ -1381,8 +1381,8 @@ ord_plot_trnL <- plot_ordination(trnL, ord_trnL, justDF = T) %>%
 samdf_trnL <- trnL@sam_data %>% as.matrix() %>% as.data.frame() %>%
   mutate(median_FPS = as.numeric(median_FPS))
 bray_trnL <- distance(trnL, method = "bray") %>% as.matrix()
-adonis2(formula = bray_trnL ~ median_FPS, data = samdf_trnL,
-         strata=samdf_trnL$participant, permutations=999, method = "bray")
+adonis2(formula = bray_trnL ~ median_FPS + participant, data = samdf_trnL,
+        permutations=999, method = "bray")
 
 # omitting ASVs not in database yields 78 taxa
 trnL_melt <- psmelt(trnL) %>%
