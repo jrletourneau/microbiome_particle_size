@@ -1372,17 +1372,20 @@ ord_plot_trnL <- plot_ordination(trnL, ord_trnL, justDF = T) %>%
   geom_point(alpha = 0.5) +
   labs(size = "Median FPS (μm)") +
   ggtitle("FoodSeq trnL composition") +
-  geom_textbox(data = data.frame(x=-0.5, y = 0.35,
-                                 label = "PERMANOVA<br>*R*<sup>2</sup> =0.022<br>*p* = 0.41"),
+  geom_textbox(data = data.frame(x=-0.5, y = 0.15,
+                                 label = "PERMANOVA<br>median_FPS *R*<sup>2</sup> = 0.022, *p* < 0.081<br>participant *R*<sup>2</sup> = 0.67, *p* < 0.0001"),
                aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
-               box.padding = grid::unit(rep(0, 4), "pt"), inherit.aes = F)
+               box.padding = grid::unit(rep(0, 4), "pt"),
+               width = unit(3, "inch"), inherit.aes = F)
 
 # PERMANOVA
 samdf_trnL <- trnL@sam_data %>% as.matrix() %>% as.data.frame() %>%
   mutate(median_FPS = as.numeric(median_FPS))
 bray_trnL <- distance(trnL, method = "bray") %>% as.matrix()
-adonis2(formula = bray_trnL ~ median_FPS + participant, data = samdf_trnL,
-        permutations=999, method = "bray")
+#adonis2(formula = bray_trnL ~ median_FPS + participant, data = samdf_trnL,
+#        permutations=9999, method = "bray")
+#median_FPS   1   0.4173 0.02222 1.4960 0.0811 .  
+#participant 25  12.5046 0.66586 1.7931 0.0001 ***
 
 # omitting ASVs not in database yields 78 taxa
 trnL_melt <- psmelt(trnL) %>%
