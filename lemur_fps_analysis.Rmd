@@ -89,9 +89,9 @@ lemur_D50_plot <- ggplot(lemur_D50, aes(x = mean, y = species)) +
   geom_errorbar(data = lemur_D50_summary, aes(y=species, xmin=mean2-se, xmax=mean2+se),
                 width=0.25, inherit.aes = F) +
   geom_errorbar(data = fritz_summary, aes(y=species, xmin=mean2, xmax=mean2),
-                color = "blue", width=0.5, inherit.aes = F) +
+                color = "darkblue", width=0.5, inherit.aes = F) +
   geom_errorbar(data = fritz_summary, aes(y=species, xmin=mean2-se, xmax=mean2+se),
-                color = "lightblue", width=0.25, inherit.aes = F) +
+                color = "blue", width=0.25, inherit.aes = F) +
   labs(x = "Median FPS (μm)", y = "Species") +
   scale_x_log10()
 

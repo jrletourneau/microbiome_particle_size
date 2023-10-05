@@ -1787,9 +1787,48 @@ set.seed(1234)
 <h1>Load data</h1>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGVtdXJfYWxsX2JpbnMgPC0gc3VtbWFyaXplX2Zwc19hbGxfYmlucyhsZW11cl9mcHMpXG5cbmBgYCJ9 -->
-<pre class="r"><code>lemur_all_bins &lt;- summarize_fps_all_bins(lemur_fps)
-</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGVtdXJfa2V5IDwtIHJlYWQuY3N2KFwiZGF0YS9sZW11cl9rZXkuY3N2XCIpXG5cbm9taXRfYWdncmVnYXRlcyA8LSBmdW5jdGlvbihkZikge1xuICBkZltyb3dTdW1zKGRmWyx3aGljaChjb2xuYW1lcyhkZikgPT0gXCJYMjEwMFwiKTp3aGljaChjb2xuYW1lcyhkZikgPT0gXCJYMzUwMFwiKV0pID09IDAsXSAlPiVcbiAgICByZXR1cm4oKVxufVxuXG5sZW11cl9mcHMgPC0gcmVhZC5jc3YoXCJkYXRhL2xlbXVycy5jc3ZcIikgJT4lXG4gIG11dGF0ZShTYW1wbGUuTmFtZSA9IGdzdWIoXCJsZW11cnMuXCIsIFwiXCIsIFNhbXBsZS5OYW1lKSAlPiUgYXMubnVtZXJpYygpKSAlPiVcbiAgbGVmdF9qb2luKGxlbXVyX2tleSwgYnkgPSBjKFwiU2FtcGxlLk5hbWVcIiA9IFwidHViZV9ub1wiKSkgJT4lXG4gIHJlbG9jYXRlKG5hbWU6Y29tbW9uX25hbWUsIC5hZnRlciA9IFNhbXBsZS5OYW1lKSAlPiVcbiAgb21pdF9hZ2dyZWdhdGVzKClcblxuc3VtbWFyaXplX2Zwc19EIDwtIGZ1bmN0aW9uKGRmKSB7XG4gIGRmICU+JVxuICAgIGRwbHlyOjpzZWxlY3QoU2FtcGxlLk5hbWU6RHguLjkwLikgJT4lXG4gICAgZ2F0aGVyKGtleT1ELCB2YWx1ZT12YWwsIChuY29sKC4pLTIpOm5jb2woLikpICU+JVxuICAgIG11dGF0ZShEID0gY2FzZV93aGVuKEQgPT0gXCJEeC4uMTAuXCIgfiBcIjEwdGggcGVyY2VudGlsZVwiLFxuICAgICAgICAgICAgICAgICAgICAgICAgIEQgPT0gXCJEeC4uNTAuXCIgfiBcIjUwdGggcGVyY2VudGlsZSAobWVkaWFuKVwiLFxuICAgICAgICAgICAgICAgICAgICAgICAgIEQgPT0gXCJEeC4uOTAuXCIgfiBcIjkwdGggcGVyY2VudGlsZVwiKSkgJT4lXG4gICAgZ3JvdXBfYnkoU2FtcGxlLk5hbWUsIG5hbWUsIHNwZWNpZXMsIGNvbW1vbl9uYW1lLCBEKSAlPiVcbiAgICBkcGx5cjo6c3VtbWFyaXplKG1lYW49bWVhbih2YWwpLCBzZT1zZCh2YWwpL3NxcnQobGVuZ3RoKHZhbCkpKVxufVxuXG5zdW1tYXJpemVfZnBzX2FsbF9iaW5zIDwtIGZ1bmN0aW9uKGRmKSB7XG4gIGRmICU+JVxuICAgIGdhdGhlcihrZXk9c2l6ZSwgdmFsdWU9dm9sdW1lLCAobmNvbCguKS0xMDApOm5jb2woLikpICU+JVxuICAgIG11dGF0ZShzaXplID0gYXMubnVtZXJpYyhzdWJzdHIoc2l6ZSwgMiwgbmNoYXIoc2l6ZSkpKSkgJT4lXG4gICAgZ3JvdXBfYnkoU2FtcGxlLk5hbWUsIG5hbWUsIHNwZWNpZXMsIGNvbW1vbl9uYW1lLCBzaXplKSAlPiVcbiAgICBkcGx5cjo6c3VtbWFyaXplKG1lYW49bWVhbih2b2x1bWUpKSAlPiVcbiAgICB1bmdyb3VwKCkgJT4lXG4gICAgYXMuZGF0YS5mcmFtZSgpXG59XG5cbmxlbXVyX0QgPC0gc3VtbWFyaXplX2Zwc19EKGxlbXVyX2ZwcylcbmBgYCJ9 -->
+<pre class="r"><code>lemur_key &lt;- read.csv(&quot;data/lemur_key.csv&quot;)
+
+omit_aggregates &lt;- function(df) {
+  df[rowSums(df[,which(colnames(df) == &quot;X2100&quot;):which(colnames(df) == &quot;X3500&quot;)]) == 0,] %&gt;%
+    return()
+}
+
+lemur_fps &lt;- read.csv(&quot;data/lemurs.csv&quot;) %&gt;%
+  mutate(Sample.Name = gsub(&quot;lemurs.&quot;, &quot;&quot;, Sample.Name) %&gt;% as.numeric()) %&gt;%
+  left_join(lemur_key, by = c(&quot;Sample.Name&quot; = &quot;tube_no&quot;)) %&gt;%
+  relocate(name:common_name, .after = Sample.Name) %&gt;%
+  omit_aggregates()
+
+summarize_fps_D &lt;- function(df) {
+  df %&gt;%
+    dplyr::select(Sample.Name:Dx..90.) %&gt;%
+    gather(key=D, value=val, (ncol(.)-2):ncol(.)) %&gt;%
+    mutate(D = case_when(D == &quot;Dx..10.&quot; ~ &quot;10th percentile&quot;,
+                         D == &quot;Dx..50.&quot; ~ &quot;50th percentile (median)&quot;,
+                         D == &quot;Dx..90.&quot; ~ &quot;90th percentile&quot;)) %&gt;%
+    group_by(Sample.Name, name, species, common_name, D) %&gt;%
+    dplyr::summarize(mean=mean(val), se=sd(val)/sqrt(length(val)))
+}
+
+summarize_fps_all_bins &lt;- function(df) {
+  df %&gt;%
+    gather(key=size, value=volume, (ncol(.)-100):ncol(.)) %&gt;%
+    mutate(size = as.numeric(substr(size, 2, nchar(size)))) %&gt;%
+    group_by(Sample.Name, name, species, common_name, size) %&gt;%
+    dplyr::summarize(mean=mean(volume)) %&gt;%
+    ungroup() %&gt;%
+    as.data.frame()
+}
+
+lemur_D &lt;- summarize_fps_D(lemur_fps)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiYHN1bW1hcmlzZSgpYCBoYXMgZ3JvdXBlZCBvdXRwdXQgYnkgJ1NhbXBsZS5OYW1lJywgJ25hbWUnLCAnc3BlY2llcycsICdjb21tb25fbmFtZScuIFlvdSBjYW4gb3ZlcnJpZGUgdXNpbmcgdGhlIGAuZ3JvdXBzYCBhcmd1bWVudC5cbiJ9 -->
+<pre><code>`summarise()` has grouped output by &#39;Sample.Name&#39;, &#39;name&#39;, &#39;species&#39;, &#39;common_name&#39;. You can override using the `.groups` argument.</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGVtdXJfYWxsX2JpbnMgPC0gc3VtbWFyaXplX2Zwc19hbGxfYmlucyhsZW11cl9mcHMpXG5gYGAifQ== -->
+<pre class="r"><code>lemur_all_bins &lt;- summarize_fps_all_bins(lemur_fps)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoiYHN1bW1hcmlzZSgpYCBoYXMgZ3JvdXBlZCBvdXRwdXQgYnkgJ1NhbXBsZS5OYW1lJywgJ25hbWUnLCAnc3BlY2llcycsICdjb21tb25fbmFtZScuIFlvdSBjYW4gb3ZlcnJpZGUgdXNpbmcgdGhlIGAuZ3JvdXBzYCBhcmd1bWVudC5cbiJ9 -->
 <pre><code>`summarise()` has grouped output by &#39;Sample.Name&#39;, &#39;name&#39;, &#39;species&#39;, &#39;common_name&#39;. You can override using the `.groups` argument.</code></pre>
@@ -1801,21 +1840,44 @@ set.seed(1234)
 <h1>Summarize medians and plot</h1>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGVtdXJfRDUwX3N1bW1hcnkgPC0gbGVtdXJfRDUwICU+JVxuICBncm91cF9ieShzcGVjaWVzLCBjb21tb25fbmFtZSkgJT4lXG4gIHN1bW1hcml6ZShtZWFuMiA9IG1lYW4obWVhbiksIHNlID0gc2QobWVhbikvc3FydChsZW5ndGgobWVhbikpKVxuXG5gYGAifQ== -->
-<pre class="r"><code>lemur_D50_summary &lt;- lemur_D50 %&gt;%
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGVtdXJfRDUwIDwtIGxlbXVyX0QgJT4lXG4gIGRwbHlyOjpmaWx0ZXIoRCA9PSBcIjUwdGggcGVyY2VudGlsZSAobWVkaWFuKVwiKVxuXG5sZW11cl9ENTBfc3VtbWFyeSA8LSBsZW11cl9ENTAgJT4lXG4gIGdyb3VwX2J5KHNwZWNpZXMsIGNvbW1vbl9uYW1lKSAlPiVcbiAgc3VtbWFyaXplKG1lYW4yID0gbWVhbihtZWFuKSwgc2UgPSBzZChtZWFuKS9zcXJ0KGxlbmd0aChtZWFuKSkpXG5gYGAifQ== -->
+<pre class="r"><code>lemur_D50 &lt;- lemur_D %&gt;%
+  dplyr::filter(D == &quot;50th percentile (median)&quot;)
+
+lemur_D50_summary &lt;- lemur_D50 %&gt;%
   group_by(species, common_name) %&gt;%
-  summarize(mean2 = mean(mean), se = sd(mean)/sqrt(length(mean)))
-</code></pre>
+  summarize(mean2 = mean(mean), se = sd(mean)/sqrt(length(mean)))</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoiYHN1bW1hcmlzZSgpYCBoYXMgZ3JvdXBlZCBvdXRwdXQgYnkgJ3NwZWNpZXMnLiBZb3UgY2FuIG92ZXJyaWRlIHVzaW5nIHRoZSBgLmdyb3Vwc2AgYXJndW1lbnQuXG4ifQ== -->
 <pre><code>`summarise()` has grouped output by &#39;species&#39;. You can override using the `.groups` argument.</code></pre>
 <!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZnJpdHpfc3VtbWFyeSA8LSBkYXRhLmZyYW1lKHNwZWNpZXMgPSBjKFwiTGVtdXIgY2F0dGFcIiwgXCJQcm9waXRoZWN1cyBjb3F1ZXJlbGlcIiwgXCJWYXJlY2lhIHZhcmllZ2F0YVwiKSxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICBtZWFuMiA9IGMoMTkxMy43LCBOQSwgMjExMy45KSxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICBzZCA9IGMoNjI0LjgsIE5BLCA4MzMuNSksXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgbiA9IGMoMywgTkEsIDQpKSAlPiVcbiAgbXV0YXRlKHNlID0gc2Qvc3FydChuKSlcblxubGVtdXJfRDUwX3Bsb3QgPC0gZ2dwbG90KGxlbXVyX0Q1MCwgYWVzKHggPSBtZWFuLCB5ID0gc3BlY2llcykpICtcbiAgZ2VvbV9wb2ludChwb3NpdGlvbj1wb3NpdGlvbl9qaXR0ZXIod2lkdGggPSAwLCBoZWlnaHQgPSAwLjA1KSwgYWxwaGE9MC4yNSkgK1xuICBnZW9tX2Vycm9yYmFyKGRhdGEgPSBsZW11cl9ENTBfc3VtbWFyeSwgYWVzKHk9c3BlY2llcywgeG1pbj1tZWFuMiwgeG1heD1tZWFuMiksXG4gICAgICAgICAgICAgICAgY29sb3IgPSBcInJlZFwiLCB3aWR0aD0wLjUsIGluaGVyaXQuYWVzID0gRikgK1xuICBnZW9tX2Vycm9yYmFyKGRhdGEgPSBsZW11cl9ENTBfc3VtbWFyeSwgYWVzKHk9c3BlY2llcywgeG1pbj1tZWFuMi1zZSwgeG1heD1tZWFuMitzZSksXG4gICAgICAgICAgICAgICAgd2lkdGg9MC4yNSwgaW5oZXJpdC5hZXMgPSBGKSArXG4gIGdlb21fZXJyb3JiYXIoZGF0YSA9IGZyaXR6X3N1bW1hcnksIGFlcyh5PXNwZWNpZXMsIHhtaW49bWVhbjIsIHhtYXg9bWVhbjIpLFxuICAgICAgICAgICAgICAgIGNvbG9yID0gXCJibHVlXCIsIHdpZHRoPTAuNSwgaW5oZXJpdC5hZXMgPSBGKSArXG4gIGdlb21fZXJyb3JiYXIoZGF0YSA9IGZyaXR6X3N1bW1hcnksIGFlcyh5PXNwZWNpZXMsIHhtaW49bWVhbjItc2UsIHhtYXg9bWVhbjIrc2UpLFxuICAgICAgICAgICAgICAgIGNvbG9yID0gXCJsaWdodGJsdWVcIiwgd2lkdGg9MC4yNSwgaW5oZXJpdC5hZXMgPSBGKSArXG4gIGxhYnMoeCA9IFwiTWVkaWFuIEZQUyAozrxtKVwiLCB5ID0gXCJTcGVjaWVzXCIpICtcbiAgc2NhbGVfeF9sb2cxMCgpXG5cbmBgYCJ9 -->
+<pre class="r"><code>fritz_summary &lt;- data.frame(species = c(&quot;Lemur catta&quot;, &quot;Propithecus coquereli&quot;, &quot;Varecia variegata&quot;),
+                            mean2 = c(1913.7, NA, 2113.9),
+                            sd = c(624.8, NA, 833.5),
+                            n = c(3, NA, 4)) %&gt;%
+  mutate(se = sd/sqrt(n))
+
+lemur_D50_plot &lt;- ggplot(lemur_D50, aes(x = mean, y = species)) +
+  geom_point(position=position_jitter(width = 0, height = 0.05), alpha=0.25) +
+  geom_errorbar(data = lemur_D50_summary, aes(y=species, xmin=mean2, xmax=mean2),
+                color = &quot;red&quot;, width=0.5, inherit.aes = F) +
+  geom_errorbar(data = lemur_D50_summary, aes(y=species, xmin=mean2-se, xmax=mean2+se),
+                width=0.25, inherit.aes = F) +
+  geom_errorbar(data = fritz_summary, aes(y=species, xmin=mean2, xmax=mean2),
+                color = &quot;blue&quot;, width=0.5, inherit.aes = F) +
+  geom_errorbar(data = fritz_summary, aes(y=species, xmin=mean2-se, xmax=mean2+se),
+                color = &quot;lightblue&quot;, width=0.25, inherit.aes = F) +
+  labs(x = &quot;Median FPS (μm)&quot;, y = &quot;Species&quot;) +
+  scale_x_log10()
+</code></pre>
+<!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 </div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkxlbXVyIEZQUyBhbmFseXNpcyINCm91dHB1dDogaHRtbF9ub3RlYm9vaw0KLS0tDQoNCg0KIyBMb2FkIGxpYnJhcmllcw0KYGBge3J9DQojIFBsb3R0aW5nDQpsaWJyYXJ5KHRpZHl2ZXJzZSkNCmxpYnJhcnkoZ2d0ZXh0KQ0KbGlicmFyeShjb3dwbG90KQ0KDQojIFN0YXRzDQpsaWJyYXJ5KGxtZTQpDQpsaWJyYXJ5KGxtZXJUZXN0KQ0KDQp0aGVtZV9zZXQodGhlbWVfYncoKSArDQogICAgICAgICAgICB0aGVtZShheGlzLnRleHQgPSBlbGVtZW50X3RleHQoY29sb3IgPSAiYmxhY2siKSwNCiAgICAgICAgICAgICAgICAgIGF4aXMudGlja3MgPSBlbGVtZW50X2xpbmUoY29sb3IgPSAiYmxhY2siKSwNCiAgICAgICAgICAgICAgICAgIHBsb3QudGl0bGUgPSBlbGVtZW50X3RleHQoaGp1c3QgPSAwLjUpKSkNCg0Kc2V0LnNlZWQoMTIzNCkNCg0KDQoNCmBgYA0KDQojIExvYWQgZGF0YQ0KYGBge3J9DQpsZW11cl9rZXkgPC0gcmVhZC5jc3YoImRhdGEvbGVtdXJfa2V5LmNzdiIpDQoNCm9taXRfYWdncmVnYXRlcyA8LSBmdW5jdGlvbihkZikgew0KICBkZltyb3dTdW1zKGRmWyx3aGljaChjb2xuYW1lcyhkZikgPT0gIlgyMTAwIik6d2hpY2goY29sbmFtZXMoZGYpID09ICJYMzUwMCIpXSkgPT0gMCxdICU+JQ0KICAgIHJldHVybigpDQp9DQoNCmxlbXVyX2ZwcyA8LSByZWFkLmNzdigiZGF0YS9sZW11cnMuY3N2IikgJT4lDQogIG11dGF0ZShTYW1wbGUuTmFtZSA9IGdzdWIoImxlbXVycy4iLCAiIiwgU2FtcGxlLk5hbWUpICU+JSBhcy5udW1lcmljKCkpICU+JQ0KICBsZWZ0X2pvaW4obGVtdXJfa2V5LCBieSA9IGMoIlNhbXBsZS5OYW1lIiA9ICJ0dWJlX25vIikpICU+JQ0KICByZWxvY2F0ZShuYW1lOmNvbW1vbl9uYW1lLCAuYWZ0ZXIgPSBTYW1wbGUuTmFtZSkgJT4lDQogIG9taXRfYWdncmVnYXRlcygpDQoNCnN1bW1hcml6ZV9mcHNfRCA8LSBmdW5jdGlvbihkZikgew0KICBkZiAlPiUNCiAgICBkcGx5cjo6c2VsZWN0KFNhbXBsZS5OYW1lOkR4Li45MC4pICU+JQ0KICAgIGdhdGhlcihrZXk9RCwgdmFsdWU9dmFsLCAobmNvbCguKS0yKTpuY29sKC4pKSAlPiUNCiAgICBtdXRhdGUoRCA9IGNhc2Vfd2hlbihEID09ICJEeC4uMTAuIiB+ICIxMHRoIHBlcmNlbnRpbGUiLA0KICAgICAgICAgICAgICAgICAgICAgICAgIEQgPT0gIkR4Li41MC4iIH4gIjUwdGggcGVyY2VudGlsZSAobWVkaWFuKSIsDQogICAgICAgICAgICAgICAgICAgICAgICAgRCA9PSAiRHguLjkwLiIgfiAiOTB0aCBwZXJjZW50aWxlIikpICU+JQ0KICAgIGdyb3VwX2J5KFNhbXBsZS5OYW1lLCBuYW1lLCBzcGVjaWVzLCBjb21tb25fbmFtZSwgRCkgJT4lDQogICAgZHBseXI6OnN1bW1hcml6ZShtZWFuPW1lYW4odmFsKSwgc2U9c2QodmFsKS9zcXJ0KGxlbmd0aCh2YWwpKSkNCn0NCg0Kc3VtbWFyaXplX2Zwc19hbGxfYmlucyA8LSBmdW5jdGlvbihkZikgew0KICBkZiAlPiUNCiAgICBnYXRoZXIoa2V5PXNpemUsIHZhbHVlPXZvbHVtZSwgKG5jb2woLiktMTAwKTpuY29sKC4pKSAlPiUNCiAgICBtdXRhdGUoc2l6ZSA9IGFzLm51bWVyaWMoc3Vic3RyKHNpemUsIDIsIG5jaGFyKHNpemUpKSkpICU+JQ0KICAgIGdyb3VwX2J5KFNhbXBsZS5OYW1lLCBuYW1lLCBzcGVjaWVzLCBjb21tb25fbmFtZSwgc2l6ZSkgJT4lDQogICAgZHBseXI6OnN1bW1hcml6ZShtZWFuPW1lYW4odm9sdW1lKSkgJT4lDQogICAgdW5ncm91cCgpICU+JQ0KICAgIGFzLmRhdGEuZnJhbWUoKQ0KfQ0KDQpsZW11cl9EIDwtIHN1bW1hcml6ZV9mcHNfRChsZW11cl9mcHMpDQpsZW11cl9hbGxfYmlucyA8LSBzdW1tYXJpemVfZnBzX2FsbF9iaW5zKGxlbXVyX2ZwcykNCg0KYGBgDQoNCiMgU3VtbWFyaXplIG1lZGlhbnMgYW5kIHBsb3QNCmBgYHtyfQ0KbGVtdXJfRDUwIDwtIGxlbXVyX0QgJT4lDQogIGRwbHlyOjpmaWx0ZXIoRCA9PSAiNTB0aCBwZXJjZW50aWxlIChtZWRpYW4pIikNCg0KbGVtdXJfRDUwX3N1bW1hcnkgPC0gbGVtdXJfRDUwICU+JQ0KICBncm91cF9ieShzcGVjaWVzLCBjb21tb25fbmFtZSkgJT4lDQogIHN1bW1hcml6ZShtZWFuMiA9IG1lYW4obWVhbiksIHNlID0gc2QobWVhbikvc3FydChsZW5ndGgobWVhbikpKQ0KDQpmcml0el9zdW1tYXJ5IDwtIGRhdGEuZnJhbWUoc3BlY2llcyA9IGMoIkxlbXVyIGNhdHRhIiwgIlByb3BpdGhlY3VzIGNvcXVlcmVsaSIsICJWYXJlY2lhIHZhcmllZ2F0YSIpLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIG1lYW4yID0gYygxOTEzLjcsIE5BLCAyMTEzLjkpLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIHNkID0gYyg2MjQuOCwgTkEsIDgzMy41KSwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBuID0gYygzLCBOQSwgNCkpICU+JQ0KICBtdXRhdGUoc2UgPSBzZC9zcXJ0KG4pKQ0KDQpsZW11cl9ENTBfcGxvdCA8LSBnZ3Bsb3QobGVtdXJfRDUwLCBhZXMoeCA9IG1lYW4sIHkgPSBzcGVjaWVzKSkgKw0KICBnZW9tX3BvaW50KHBvc2l0aW9uPXBvc2l0aW9uX2ppdHRlcih3aWR0aCA9IDAsIGhlaWdodCA9IDAuMDUpLCBhbHBoYT0wLjI1KSArDQogIGdlb21fZXJyb3JiYXIoZGF0YSA9IGxlbXVyX0Q1MF9zdW1tYXJ5LCBhZXMoeT1zcGVjaWVzLCB4bWluPW1lYW4yLCB4bWF4PW1lYW4yKSwNCiAgICAgICAgICAgICAgICBjb2xvciA9ICJyZWQiLCB3aWR0aD0wLjUsIGluaGVyaXQuYWVzID0gRikgKw0KICBnZW9tX2Vycm9yYmFyKGRhdGEgPSBsZW11cl9ENTBfc3VtbWFyeSwgYWVzKHk9c3BlY2llcywgeG1pbj1tZWFuMi1zZSwgeG1heD1tZWFuMitzZSksDQogICAgICAgICAgICAgICAgd2lkdGg9MC4yNSwgaW5oZXJpdC5hZXMgPSBGKSArDQogIGdlb21fZXJyb3JiYXIoZGF0YSA9IGZyaXR6X3N1bW1hcnksIGFlcyh5PXNwZWNpZXMsIHhtaW49bWVhbjIsIHhtYXg9bWVhbjIpLA0KICAgICAgICAgICAgICAgIGNvbG9yID0gImJsdWUiLCB3aWR0aD0wLjUsIGluaGVyaXQuYWVzID0gRikgKw0KICBnZW9tX2Vycm9yYmFyKGRhdGEgPSBmcml0el9zdW1tYXJ5LCBhZXMoeT1zcGVjaWVzLCB4bWluPW1lYW4yLXNlLCB4bWF4PW1lYW4yK3NlKSwNCiAgICAgICAgICAgICAgICBjb2xvciA9ICJsaWdodGJsdWUiLCB3aWR0aD0wLjI1LCBpbmhlcml0LmFlcyA9IEYpICsNCiAgbGFicyh4ID0gIk1lZGlhbiBGUFMgKM68bSkiLCB5ID0gIlNwZWNpZXMiKSArDQogIHNjYWxlX3hfbG9nMTAoKQ0KDQpgYGANCg0KDQoNCg0K</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkxlbXVyIEZQUyBhbmFseXNpcyINCm91dHB1dDogaHRtbF9ub3RlYm9vaw0KLS0tDQoNCg0KIyBMb2FkIGxpYnJhcmllcw0KYGBge3J9DQojIFBsb3R0aW5nDQpsaWJyYXJ5KHRpZHl2ZXJzZSkNCmxpYnJhcnkoZ2d0ZXh0KQ0KbGlicmFyeShjb3dwbG90KQ0KDQojIFN0YXRzDQpsaWJyYXJ5KGxtZTQpDQpsaWJyYXJ5KGxtZXJUZXN0KQ0KDQp0aGVtZV9zZXQodGhlbWVfYncoKSArDQogICAgICAgICAgICB0aGVtZShheGlzLnRleHQgPSBlbGVtZW50X3RleHQoY29sb3IgPSAiYmxhY2siKSwNCiAgICAgICAgICAgICAgICAgIGF4aXMudGlja3MgPSBlbGVtZW50X2xpbmUoY29sb3IgPSAiYmxhY2siKSwNCiAgICAgICAgICAgICAgICAgIHBsb3QudGl0bGUgPSBlbGVtZW50X3RleHQoaGp1c3QgPSAwLjUpKSkNCg0Kc2V0LnNlZWQoMTIzNCkNCg0KDQoNCmBgYA0KDQojIExvYWQgZGF0YQ0KYGBge3J9DQpsZW11cl9rZXkgPC0gcmVhZC5jc3YoImRhdGEvbGVtdXJfa2V5LmNzdiIpDQoNCm9taXRfYWdncmVnYXRlcyA8LSBmdW5jdGlvbihkZikgew0KICBkZltyb3dTdW1zKGRmWyx3aGljaChjb2xuYW1lcyhkZikgPT0gIlgyMTAwIik6d2hpY2goY29sbmFtZXMoZGYpID09ICJYMzUwMCIpXSkgPT0gMCxdICU+JQ0KICAgIHJldHVybigpDQp9DQoNCmxlbXVyX2ZwcyA8LSByZWFkLmNzdigiZGF0YS9sZW11cnMuY3N2IikgJT4lDQogIG11dGF0ZShTYW1wbGUuTmFtZSA9IGdzdWIoImxlbXVycy4iLCAiIiwgU2FtcGxlLk5hbWUpICU+JSBhcy5udW1lcmljKCkpICU+JQ0KICBsZWZ0X2pvaW4obGVtdXJfa2V5LCBieSA9IGMoIlNhbXBsZS5OYW1lIiA9ICJ0dWJlX25vIikpICU+JQ0KICByZWxvY2F0ZShuYW1lOmNvbW1vbl9uYW1lLCAuYWZ0ZXIgPSBTYW1wbGUuTmFtZSkgJT4lDQogIG9taXRfYWdncmVnYXRlcygpDQoNCnN1bW1hcml6ZV9mcHNfRCA8LSBmdW5jdGlvbihkZikgew0KICBkZiAlPiUNCiAgICBkcGx5cjo6c2VsZWN0KFNhbXBsZS5OYW1lOkR4Li45MC4pICU+JQ0KICAgIGdhdGhlcihrZXk9RCwgdmFsdWU9dmFsLCAobmNvbCguKS0yKTpuY29sKC4pKSAlPiUNCiAgICBtdXRhdGUoRCA9IGNhc2Vfd2hlbihEID09ICJEeC4uMTAuIiB+ICIxMHRoIHBlcmNlbnRpbGUiLA0KICAgICAgICAgICAgICAgICAgICAgICAgIEQgPT0gIkR4Li41MC4iIH4gIjUwdGggcGVyY2VudGlsZSAobWVkaWFuKSIsDQogICAgICAgICAgICAgICAgICAgICAgICAgRCA9PSAiRHguLjkwLiIgfiAiOTB0aCBwZXJjZW50aWxlIikpICU+JQ0KICAgIGdyb3VwX2J5KFNhbXBsZS5OYW1lLCBuYW1lLCBzcGVjaWVzLCBjb21tb25fbmFtZSwgRCkgJT4lDQogICAgZHBseXI6OnN1bW1hcml6ZShtZWFuPW1lYW4odmFsKSwgc2U9c2QodmFsKS9zcXJ0KGxlbmd0aCh2YWwpKSkNCn0NCg0Kc3VtbWFyaXplX2Zwc19hbGxfYmlucyA8LSBmdW5jdGlvbihkZikgew0KICBkZiAlPiUNCiAgICBnYXRoZXIoa2V5PXNpemUsIHZhbHVlPXZvbHVtZSwgKG5jb2woLiktMTAwKTpuY29sKC4pKSAlPiUNCiAgICBtdXRhdGUoc2l6ZSA9IGFzLm51bWVyaWMoc3Vic3RyKHNpemUsIDIsIG5jaGFyKHNpemUpKSkpICU+JQ0KICAgIGdyb3VwX2J5KFNhbXBsZS5OYW1lLCBuYW1lLCBzcGVjaWVzLCBjb21tb25fbmFtZSwgc2l6ZSkgJT4lDQogICAgZHBseXI6OnN1bW1hcml6ZShtZWFuPW1lYW4odm9sdW1lKSkgJT4lDQogICAgdW5ncm91cCgpICU+JQ0KICAgIGFzLmRhdGEuZnJhbWUoKQ0KfQ0KDQpsZW11cl9EIDwtIHN1bW1hcml6ZV9mcHNfRChsZW11cl9mcHMpDQpsZW11cl9hbGxfYmlucyA8LSBzdW1tYXJpemVfZnBzX2FsbF9iaW5zKGxlbXVyX2ZwcykNCg0KYGBgDQoNCiMgU3VtbWFyaXplIG1lZGlhbnMgYW5kIHBsb3QNCmBgYHtyfQ0KbGVtdXJfRDUwIDwtIGxlbXVyX0QgJT4lDQogIGRwbHlyOjpmaWx0ZXIoRCA9PSAiNTB0aCBwZXJjZW50aWxlIChtZWRpYW4pIikNCg0KbGVtdXJfRDUwX3N1bW1hcnkgPC0gbGVtdXJfRDUwICU+JQ0KICBncm91cF9ieShzcGVjaWVzLCBjb21tb25fbmFtZSkgJT4lDQogIHN1bW1hcml6ZShtZWFuMiA9IG1lYW4obWVhbiksIHNlID0gc2QobWVhbikvc3FydChsZW5ndGgobWVhbikpKQ0KDQpmcml0el9zdW1tYXJ5IDwtIGRhdGEuZnJhbWUoc3BlY2llcyA9IGMoIkxlbXVyIGNhdHRhIiwgIlByb3BpdGhlY3VzIGNvcXVlcmVsaSIsICJWYXJlY2lhIHZhcmllZ2F0YSIpLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIG1lYW4yID0gYygxOTEzLjcsIE5BLCAyMTEzLjkpLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIHNkID0gYyg2MjQuOCwgTkEsIDgzMy41KSwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBuID0gYygzLCBOQSwgNCkpICU+JQ0KICBtdXRhdGUoc2UgPSBzZC9zcXJ0KG4pKQ0KDQpsZW11cl9ENTBfcGxvdCA8LSBnZ3Bsb3QobGVtdXJfRDUwLCBhZXMoeCA9IG1lYW4sIHkgPSBzcGVjaWVzKSkgKw0KICBnZW9tX3BvaW50KHBvc2l0aW9uPXBvc2l0aW9uX2ppdHRlcih3aWR0aCA9IDAsIGhlaWdodCA9IDAuMDUpLCBhbHBoYT0wLjI1KSArDQogIGdlb21fZXJyb3JiYXIoZGF0YSA9IGxlbXVyX0Q1MF9zdW1tYXJ5LCBhZXMoeT1zcGVjaWVzLCB4bWluPW1lYW4yLCB4bWF4PW1lYW4yKSwNCiAgICAgICAgICAgICAgICBjb2xvciA9ICJyZWQiLCB3aWR0aD0wLjUsIGluaGVyaXQuYWVzID0gRikgKw0KICBnZW9tX2Vycm9yYmFyKGRhdGEgPSBsZW11cl9ENTBfc3VtbWFyeSwgYWVzKHk9c3BlY2llcywgeG1pbj1tZWFuMi1zZSwgeG1heD1tZWFuMitzZSksDQogICAgICAgICAgICAgICAgd2lkdGg9MC4yNSwgaW5oZXJpdC5hZXMgPSBGKSArDQogIGdlb21fZXJyb3JiYXIoZGF0YSA9IGZyaXR6X3N1bW1hcnksIGFlcyh5PXNwZWNpZXMsIHhtaW49bWVhbjIsIHhtYXg9bWVhbjIpLA0KICAgICAgICAgICAgICAgIGNvbG9yID0gImRhcmtibHVlIiwgd2lkdGg9MC41LCBpbmhlcml0LmFlcyA9IEYpICsNCiAgZ2VvbV9lcnJvcmJhcihkYXRhID0gZnJpdHpfc3VtbWFyeSwgYWVzKHk9c3BlY2llcywgeG1pbj1tZWFuMi1zZSwgeG1heD1tZWFuMitzZSksDQogICAgICAgICAgICAgICAgY29sb3IgPSAiYmx1ZSIsIHdpZHRoPTAuMjUsIGluaGVyaXQuYWVzID0gRikgKw0KICBsYWJzKHggPSAiTWVkaWFuIEZQUyAozrxtKSIsIHkgPSAiU3BlY2llcyIpICsNCiAgc2NhbGVfeF9sb2cxMCgpDQoNCmBgYA0KDQoNCg0KDQo=</div>
 
 
 

@@ -1297,7 +1297,7 @@ moisture_summary <- moisture %>%
 moisture %>%
   aov(moisture ~ factor(cluster) + participant, data = .) %>%
   TukeyHSD(which = "factor(cluster)")
-  summary()
+  #summary()
 # ANOVA of cluster + participant: cluster p = 1.59e-06, participant p = 0.00346
 # TukeyHSD signif for 2-3, 2-5, 3-4, 4-5 --> ab, a, b, a, b
 
@@ -1372,11 +1372,11 @@ ord_plot_trnL <- plot_ordination(trnL, ord_trnL, justDF = T) %>%
   geom_point(alpha = 0.5) +
   labs(size = "Median FPS (μm)") +
   ggtitle("FoodSeq trnL composition") +
-  geom_textbox(data = data.frame(x=-0.5, y = 0.15,
+  geom_textbox(data = data.frame(x=-0.45, y = 0.45,
                                  label = "PERMANOVA<br>median_FPS *R*<sup>2</sup> = 0.022, *p* < 0.081<br>participant *R*<sup>2</sup> = 0.67, *p* < 0.0001"),
                aes(x, y, label = label), halign = 0.5, fill = NA, box.colour = NA,
                box.padding = grid::unit(rep(0, 4), "pt"),
-               width = unit(3, "inch"), inherit.aes = F)
+               width = unit(3, "inch"), size = 3, inherit.aes = F)
 
 # PERMANOVA
 samdf_trnL <- trnL@sam_data %>% as.matrix() %>% as.data.frame() %>%
@@ -2468,7 +2468,6 @@ figS11_patch <- plot_grid(macro_corr_plot, fig_dietFPS,
                          labels = c("A", ""), label_fontface = "plain")
 
 ggsave("plots/figS11.png", figS11_patch, height = 9, width = 12)
-
 
 #ggsave("plots/median_plot_indiv.png", median_plot_indiv, height = 6, width = 7)
 
