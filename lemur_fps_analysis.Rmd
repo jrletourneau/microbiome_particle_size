@@ -72,15 +72,28 @@ lemur_all_bins <- summarize_fps_all_bins(lemur_fps)
 lemur_D50 <- lemur_D %>%
   dplyr::filter(D == "50th percentile (median)")
 
+# Add mice (from Abx_and_GF_mice_fig.Rmd)
+mouse_for_lemur <- data.frame(Sample.Name = NA, species = "Mus musculus", common_name = NA, D = NA,
+                              mean = mouse_gf_D50 %>%
+                                filter(Microbiome == "SPF") %>%
+                                pull(median),
+                              se = NA)
+
+lemur_D50 <- rbind(lemur_D50, mouse_for_lemur) %>%
+  mutate(species = factor(species, levels = rev(c("Lemur catta", "Propithecus coquereli", "Varecia variegata",
+                                                  "Mus musculus"))))
+
 lemur_D50_summary <- lemur_D50 %>%
   group_by(species, common_name) %>%
   summarize(mean2 = mean(mean), se = sd(mean)/sqrt(length(mean)))
 
-fritz_summary <- data.frame(species = c("Lemur catta", "Propithecus coquereli", "Varecia variegata"),
-                            mean2 = c(1913.7, NA, 2113.9),
-                            sd = c(624.8, NA, 833.5),
-                            n = c(3, NA, 4)) %>%
+fritz_summary <- data.frame(species = c("Lemur catta", "Propithecus coquereli", "Varecia variegata",
+                                        "Mus musculus"),
+                            mean2 = c(1913.7, NA, 2113.9, 208.5),
+                            sd = c(624.8, NA, 833.5, 0),
+                            n = c(3, NA, 4, 1)) %>%
   mutate(se = sd/sqrt(n))
+
 
 lemur_D50_plot <- ggplot(lemur_D50, aes(x = mean, y = species)) +
   geom_point(position=position_jitter(width = 0, height = 0.05), alpha=0.25) +

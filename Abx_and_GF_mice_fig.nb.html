@@ -1763,18 +1763,67 @@ and fiber supplementation</h1>
 <h1>Load libraries</h1>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBQbG90dGluZ1xubGlicmFyeSh0aWR5dmVyc2UpXG5saWJyYXJ5KFJDb2xvckJyZXdlcilcbmxpYnJhcnkocGF0Y2h3b3JrKVxubGlicmFyeShjb3dwbG90KVxuXG4jIFN0YXRzXG5saWJyYXJ5KGxtZTQpXG5saWJyYXJ5KGxtZXJUZXN0KVxuXG50aGVtZV9zZXQodGhlbWVfYncoKSArXG4gICAgICAgICAgICB0aGVtZShheGlzLnRleHQgPSBlbGVtZW50X3RleHQoY29sb3IgPSBcImJsYWNrXCIpLFxuICAgICAgICAgICAgICAgICAgYXhpcy50aWNrcyA9IGVsZW1lbnRfbGluZShjb2xvciA9IFwiYmxhY2tcIiksXG4gICAgICAgICAgICAgICAgICBwbG90LnRpdGxlID0gZWxlbWVudF90ZXh0KGhqdXN0ID0gMC41KSkpXG5cblxuIyBPbWl0IHJlYWRzIHdpdGggb2J2aW91cyBhZ2dyZWdhdGlvbiAocGFydGljbGVzIGdyZWF0ZXIgdGhhbiBmaWx0ZXIgc2l6ZSBkZXRlY3RlZClcbm9taXRfYWdncmVnYXRlcyA8LSBmdW5jdGlvbihkZikge1xuICBkZltyb3dTdW1zKGRmWyx3aGljaChjb2xuYW1lcyhkZikgPT0gXCJYMjEwMFwiKTp3aGljaChjb2xuYW1lcyhkZikgPT0gXCJYMzUwMFwiKV0pID09IDAsXSAlPiVcbiAgICByZXR1cm4oKVxufVxuXG5cbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBQbG90dGluZ1xubGlicmFyeSh0aWR5dmVyc2UpXG5gYGAifQ== -->
 <pre class="r"><code># Plotting
-library(tidyverse)
-library(RColorBrewer)
+library(tidyverse)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiUmVnaXN0ZXJlZCBTMyBtZXRob2RzIG92ZXJ3cml0dGVuIGJ5ICdkYnBseXInOlxuICBtZXRob2QgICAgICAgICBmcm9tXG4gIHByaW50LnRibF9sYXp5ICAgICBcbiAgcHJpbnQudGJsX3NxbCAgICAgIFxu4pSA4pSAIEF0dGFjaGluZyBwYWNrYWdlcyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgdGlkeXZlcnNlIDEuMy4xIOKUgOKUgFxu4pyUIGdncGxvdDIgMy4zLjUgICAgIOKclCBwdXJyciAgIDAuMy40XG7inJQgdGliYmxlICAzLjEuNiAgICAg4pyUIGRwbHlyICAgMS4wLjhcbuKclCB0aWR5ciAgIDEuMi4wICAgICDinJQgc3RyaW5nciAxLjQuMFxu4pyUIHJlYWRyICAgMi4xLjIgICAgIOKclCBmb3JjYXRzIDAuNS4xXG7ilIDilIAgQ29uZmxpY3RzIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCB0aWR5dmVyc2VfY29uZmxpY3RzKCkg4pSA4pSAXG7inJYgZHBseXI6OmZpbHRlcigpIG1hc2tzIHN0YXRzOjpmaWx0ZXIoKVxu4pyWIGRwbHlyOjpsYWcoKSAgICBtYXNrcyBzdGF0czo6bGFnKClcbiJ9 -->
+<pre><code>Registered S3 methods overwritten by &#39;dbplyr&#39;:
+  method         from
+  print.tbl_lazy     
+  print.tbl_sql      
+── Attaching packages ───────────────────────────────────────────────────────────────────── tidyverse 1.3.1 ──
+✔ ggplot2 3.3.5     ✔ purrr   0.3.4
+✔ tibble  3.1.6     ✔ dplyr   1.0.8
+✔ tidyr   1.2.0     ✔ stringr 1.4.0
+✔ readr   2.1.2     ✔ forcats 0.5.1
+── Conflicts ──────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShSQ29sb3JCcmV3ZXIpXG5saWJyYXJ5KHBhdGNod29yaylcbmxpYnJhcnkoY293cGxvdClcbmBgYCJ9 -->
+<pre class="r"><code>library(RColorBrewer)
 library(patchwork)
-library(cowplot)
+library(cowplot)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTog4oCYY293cGxvdOKAmVxuXG5UaGUgZm9sbG93aW5nIG9iamVjdCBpcyBtYXNrZWQgZnJvbSDigJhwYWNrYWdlOnBhdGNod29ya+KAmTpcblxuICAgIGFsaWduX3Bsb3RzXG4ifQ== -->
+<pre><code>
+Attaching package: ‘cowplot’
 
-# Stats
-library(lme4)
-library(lmerTest)
+The following object is masked from ‘package:patchwork’:
 
-theme_set(theme_bw() +
+    align_plots</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBTdGF0c1xubGlicmFyeShsbWU0KVxuYGBgIn0= -->
+<pre class="r"><code># Stats
+library(lme4)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiBNYXRyaXhcblxuQXR0YWNoaW5nIHBhY2thZ2U6IOKAmE1hdHJpeOKAmVxuXG5UaGUgZm9sbG93aW5nIG9iamVjdHMgYXJlIG1hc2tlZCBmcm9tIOKAmHBhY2thZ2U6dGlkeXLigJk6XG5cbiAgICBleHBhbmQsIHBhY2ssIHVucGFja1xuIn0= -->
+<pre><code>Loading required package: Matrix
+
+Attaching package: ‘Matrix’
+
+The following objects are masked from ‘package:tidyr’:
+
+    expand, pack, unpack</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShsbWVyVGVzdClcbmBgYCJ9 -->
+<pre class="r"><code>library(lmerTest)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTog4oCYbG1lclRlc3TigJlcblxuVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20g4oCYcGFja2FnZTpsbWU04oCZOlxuXG4gICAgbG1lclxuXG5UaGUgZm9sbG93aW5nIG9iamVjdCBpcyBtYXNrZWQgZnJvbSDigJhwYWNrYWdlOnN0YXRz4oCZOlxuXG4gICAgc3RlcFxuIn0= -->
+<pre><code>
+Attaching package: ‘lmerTest’
+
+The following object is masked from ‘package:lme4’:
+
+    lmer
+
+The following object is masked from ‘package:stats’:
+
+    step</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGhlbWVfc2V0KHRoZW1lX2J3KCkgK1xuICAgICAgICAgICAgdGhlbWUoYXhpcy50ZXh0ID0gZWxlbWVudF90ZXh0KGNvbG9yID0gXCJibGFja1wiKSxcbiAgICAgICAgICAgICAgICAgIGF4aXMudGlja3MgPSBlbGVtZW50X2xpbmUoY29sb3IgPSBcImJsYWNrXCIpLFxuICAgICAgICAgICAgICAgICAgcGxvdC50aXRsZSA9IGVsZW1lbnRfdGV4dChoanVzdCA9IDAuNSkpKVxuXG5cbiMgT21pdCByZWFkcyB3aXRoIG9idmlvdXMgYWdncmVnYXRpb24gKHBhcnRpY2xlcyBncmVhdGVyIHRoYW4gZmlsdGVyIHNpemUgZGV0ZWN0ZWQpXG5vbWl0X2FnZ3JlZ2F0ZXMgPC0gZnVuY3Rpb24oZGYpIHtcbiAgZGZbcm93U3VtcyhkZlssd2hpY2goY29sbmFtZXMoZGYpID09IFwiWDIxMDBcIik6d2hpY2goY29sbmFtZXMoZGYpID09IFwiWDM1MDBcIildKSA9PSAwLF0gJT4lXG4gICAgcmV0dXJuKClcbn1cblxuXG5gYGAifQ== -->
+<pre class="r"><code>theme_set(theme_bw() +
             theme(axis.text = element_text(color = &quot;black&quot;),
                   axis.ticks = element_line(color = &quot;black&quot;),
                   plot.title = element_text(hjust = 0.5)))
@@ -1794,94 +1843,40 @@ omit_aggregates &lt;- function(df) {
 <h1>Load data</h1>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuIyBNb3VzZSBBYnggZGF0YVxubW91c2VfQWJ4X2RhdGEgPC0gcmVhZC5jc3YoXFxkYXRhL01vdXNlX0FieF8xYW5kMi5jc3ZcXCkgJT4lXG4gIG9taXRfYWdncmVnYXRlcygpICU+JVxuICBtdXRhdGUoZG9ub3IgPSBmYWN0b3IoZG9ub3IpLCB0aW1lID0gZmFjdG9yKHRpbWUgKyAzLCBsZXZlbHMgPSBjKFxcLTFcXCwgXFwxXFwsIFxcMlxcKSkpICU+JVxuICBmaWx0ZXIoY29uZCA9PSBcXElNSVxcKVxuXG4jIEdPUyBkYXRhIGlzIGtpbmQgb2YgaW5jb25jbHVzaXZlLCBpbiBwYXJ0IGJlY2F1c2UgbWlzc2luZyBzYW1wbGUgZm9yIG9uZSBvZiB0aGUgYmFzZWxpbmUgcG9pbnRzXG4jIyBPdmVyYWxsIGxvb2tzIGxpa2UgRlBTIHN0YXJ0ZWQgaGlnaGVyIGZvciB0aGVzZSBtaWNlLCBidXQgZGlkIG5vdCBpbmNyZWFzZSB3aXRoIEFieCAoYXQgbGVhc3QsIGFzIG11Y2gpXG5cbm1vdXNlX0FieF9ENTAgPC0gbW91c2VfQWJ4X2RhdGEgJT4lXG4gIGRwbHlyOjpzZWxlY3QocHJvamVjdCwgZG9ub3IsIGNvbmQsIHRpbWUsIER4Li41MC4pICU+JVxuICBncm91cF9ieShwcm9qZWN0LCBkb25vciwgY29uZCwgdGltZSkgJT4lXG4gIGRwbHlyOjpzdW1tYXJpemUobWVkaWFuID0gbWVhbihEeC4uNTAuKSlcblxubW91c2VfQWJ4X0Q1MF9zdW1tYXJ5IDwtIG1vdXNlX0FieF9ENTAgJT4lXG4gIGdyb3VwX2J5KHRpbWUpICU+JVxuICBkcGx5cjo6c3VtbWFyaXplKG1lYW4gPSBtZWFuKG1lZGlhbiksIHNlID0gc2QobWVkaWFuKS9zcXJ0KGxlbmd0aChtZWRpYW4pKSlcblxubW91c2VfQWJ4X2N1cnZlcyA8LSBtb3VzZV9BYnhfZGF0YSAlPiVcbiAgZHBseXI6OnNlbGVjdChwcm9qZWN0LCBkb25vciwgY29uZCwgdGltZSwgWDAuMDE6WDM1MDApICU+JVxuICBnYXRoZXIoa2V5PXNpemUsIHZhbHVlPXZvbHVtZSwgKG5jb2woLiktMTAwKTpuY29sKC4pKSAlPiVcbiAgbXV0YXRlKHNpemUgPSBhcy5udW1lcmljKHN1YnN0cihzaXplLCAyLCBuY2hhcihzaXplKSkpKSAlPiVcbiAgZ3JvdXBfYnkocHJvamVjdCwgZG9ub3IsIGNvbmQsIHRpbWUsIHNpemUpICU+JVxuICBkcGx5cjo6c3VtbWFyaXplKG1lYW49bWVhbih2b2x1bWUpKSAlPiVcbiAgdW5ncm91cCgpICU+JVxuICBhcy5kYXRhLmZyYW1lKClcblxubW91c2VfQWJ4X2N1cnZlc19zdW1tYXJ5IDwtIG1vdXNlX0FieF9jdXJ2ZXMgJT4lXG4gIGdyb3VwX2J5KHRpbWUsIHNpemUpICU+JVxuICBkcGx5cjo6c3VtbWFyaXplKG1lYW4yPW1lYW4obWVhbiksIHNlPXNkKG1lYW4pL3NxcnQobGVuZ3RoKG1lYW4pKSlcbiAgXG5cbiMgTW91c2UgR0YgdnMuIFNQRlxubW91c2VfZ2ZfbWV0YWRhdGEgPC0gcmVhZC5jc3YoXFxkYXRhL2N5X21pY2VfbWV0YWRhdGEuY3N2XFwpXG5cbm1vdXNlX2dmIDwtIHJlYWQuY3N2KFxcZGF0YS9DWV9taWNlX21hc3RlcnNpemVyLmNzdlxcKSAlPiVcbiAgb21pdF9hZ2dyZWdhdGVzKCkgJT4lXG4gIGxlZnRfam9pbihtb3VzZV9nZl9tZXRhZGF0YSwgYnkgPSBjKFxcc2FtcGxlX251bWJlclxcID0gXFxzYW1wbGVcXCkpICU+JVxuICByZWxvY2F0ZShzdHJhaW46QWdlLi53a3MuLCAuYWZ0ZXIgPSBzYW1wbGVfbnVtYmVyKSAlPiVcbiAgI2ZpbHRlcihzYW1wbGVfbnVtYmVyICE9IFxcMjZcXCkgIyBpbnN1ZmZpY2llbnQgc2FtcGxlIGhlcmUgLSBvYnNjdXJhdGlvbiB+IDAuMDVcbiAgZmlsdGVyKE1pY3JvYmlvbWUgIT0gXFxEeXNiaW9zZWRcXCkgIyBEU1MtY29saXRpcyBzZWVtcyB0byBpbmNyZWFzZSBGUFMsIGJ1dCBpbnN1ZmZpY2llbnQgbiB0byBzYXlcblxubW91c2VfZ2ZfRDUwIDwtIG1vdXNlX2dmICU+JVxuICBkcGx5cjo6c2VsZWN0KHNhbXBsZV9udW1iZXIsIE1pY3JvYmlvbWUsIFNleCwgY2FnZSwgQWdlLi53a3MuLCBEeC4uNTAuKSAlPiVcbiAgZ3JvdXBfYnkoc2FtcGxlX251bWJlciwgTWljcm9iaW9tZSwgU2V4LCBjYWdlLCBBZ2UuLndrcy4pICU+JVxuICBkcGx5cjo6c3VtbWFyaXplKG1lZGlhbiA9IG1lYW4oRHguLjUwLikpXG5cbm1vdXNlX2dmX0Q1MF9zdW1tYXJ5IDwtIG1vdXNlX2dmX0Q1MCAlPiVcbiAgZ3JvdXBfYnkoTWljcm9iaW9tZSkgJT4lXG4gIGRwbHlyOjpzdW1tYXJpemUobWVhbiA9IG1lYW4obWVkaWFuKSwgc2UgPSBzZChtZWRpYW4pL3NxcnQobGVuZ3RoKG1lZGlhbikpKVxuXG5tb3VzZV9nZl9jdXJ2ZXMgPC0gbW91c2VfZ2YgJT4lXG4gIGRwbHlyOjpzZWxlY3Qoc2FtcGxlX251bWJlciwgTWljcm9iaW9tZSwgU2V4LCBjYWdlLCBBZ2UuLndrcy4sIFgwLjAxOlgzNTAwKSAlPiVcbiAgZ2F0aGVyKGtleT1zaXplLCB2YWx1ZT12b2x1bWUsIChuY29sKC4pLTEwMCk6bmNvbCguKSkgJT4lXG4gIG11dGF0ZShzaXplID0gYXMubnVtZXJpYyhzdWJzdHIoc2l6ZSwgMiwgbmNoYXIoc2l6ZSkpKSkgJT4lXG4gIGdyb3VwX2J5KHNhbXBsZV9udW1iZXIsIE1pY3JvYmlvbWUsIFNleCwgY2FnZSwgQWdlLi53a3MuLCBzaXplKSAlPiVcbiAgZHBseXI6OnN1bW1hcml6ZShtZWFuPW1lYW4odm9sdW1lKSkgJT4lXG4gIHVuZ3JvdXAoKSAlPiVcbiAgYXMuZGF0YS5mcmFtZSgpXG5cbm1vdXNlX2dmX2N1cnZlc19zdW1tYXJ5IDwtIG1vdXNlX2dmX2N1cnZlcyAlPiVcbiAgZ3JvdXBfYnkoTWljcm9iaW9tZSwgc2l6ZSkgJT4lXG4gIGRwbHlyOjpzdW1tYXJpemUobWVhbjI9bWVhbihtZWFuKSwgc2U9c2QobWVhbikvc3FydChsZW5ndGgobWVhbikpKVxuXG5cblxuYGBgXG5gYGAifQ== -->
-<pre class="r"><code>```r
-# Mouse Abx data
-mouse_Abx_data &lt;- read.csv(\data/Mouse_Abx_1and2.csv\) %&gt;%
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubW91c2VfZ2ZfbWV0YWRhdGEgPC0gcmVhZC5jc3YoXCJkYXRhL2N5X21pY2VfbWV0YWRhdGEuY3N2XCIpXG5cbm1vdXNlX2dmIDwtIHJlYWQuY3N2KFwiZGF0YS9DWV9taWNlX21hc3RlcnNpemVyLmNzdlwiKSAlPiVcbiAgb21pdF9hZ2dyZWdhdGVzKCkgJT4lXG4gIGxlZnRfam9pbihtb3VzZV9nZl9tZXRhZGF0YSwgYnkgPSBjKFwic2FtcGxlX251bWJlclwiID0gXCJzYW1wbGVcIikpICU+JVxuICByZWxvY2F0ZShzdHJhaW46QWdlLi53a3MuLCAuYWZ0ZXIgPSBzYW1wbGVfbnVtYmVyKSAlPiVcbiAgI2ZpbHRlcihzYW1wbGVfbnVtYmVyICE9IFwiMjZcIikgIyBpbnN1ZmZpY2llbnQgc2FtcGxlIGhlcmUgLSBvYnNjdXJhdGlvbiB+IDAuMDVcbiAgZmlsdGVyKE1pY3JvYmlvbWUgIT0gXCJEeXNiaW9zZWRcIikgIyBEU1MtY29saXRpcyBzZWVtcyB0byBpbmNyZWFzZSBGUFMsIGJ1dCBpbnN1ZmZpY2llbnQgbiB0byBzYXlcblxubW91c2VfZ2ZfRDUwIDwtIG1vdXNlX2dmICU+JVxuICBkcGx5cjo6c2VsZWN0KHNhbXBsZV9udW1iZXIsIE1pY3JvYmlvbWUsIFNleCwgY2FnZSwgQWdlLi53a3MuLCBEeC4uNTAuKSAlPiVcbiAgZ3JvdXBfYnkoc2FtcGxlX251bWJlciwgTWljcm9iaW9tZSwgU2V4LCBjYWdlLCBBZ2UuLndrcy4pICU+JVxuICBkcGx5cjo6c3VtbWFyaXplKG1lZGlhbiA9IG1lYW4oRHguLjUwLikpXG5cbmBgYCJ9 -->
+<pre class="r"><code>mouse_gf_metadata &lt;- read.csv(&quot;data/cy_mice_metadata.csv&quot;)
+
+mouse_gf &lt;- read.csv(&quot;data/CY_mice_mastersizer.csv&quot;) %&gt;%
   omit_aggregates() %&gt;%
-  mutate(donor = factor(donor), time = factor(time + 3, levels = c(\-1\, \1\, \2\))) %&gt;%
-  filter(cond == \IMI\)
-
-# GOS data is kind of inconclusive, in part because missing sample for one of the baseline points
-## Overall looks like FPS started higher for these mice, but did not increase with Abx (at least, as much)
-
-mouse_Abx_D50 &lt;- mouse_Abx_data %&gt;%
-  dplyr::select(project, donor, cond, time, Dx..50.) %&gt;%
-  group_by(project, donor, cond, time) %&gt;%
-  dplyr::summarize(median = mean(Dx..50.))
-
-mouse_Abx_D50_summary &lt;- mouse_Abx_D50 %&gt;%
-  group_by(time) %&gt;%
-  dplyr::summarize(mean = mean(median), se = sd(median)/sqrt(length(median)))
-
-mouse_Abx_curves &lt;- mouse_Abx_data %&gt;%
-  dplyr::select(project, donor, cond, time, X0.01:X3500) %&gt;%
-  gather(key=size, value=volume, (ncol(.)-100):ncol(.)) %&gt;%
-  mutate(size = as.numeric(substr(size, 2, nchar(size)))) %&gt;%
-  group_by(project, donor, cond, time, size) %&gt;%
-  dplyr::summarize(mean=mean(volume)) %&gt;%
-  ungroup() %&gt;%
-  as.data.frame()
-
-mouse_Abx_curves_summary &lt;- mouse_Abx_curves %&gt;%
-  group_by(time, size) %&gt;%
-  dplyr::summarize(mean2=mean(mean), se=sd(mean)/sqrt(length(mean)))
-  
-
-# Mouse GF vs. SPF
-mouse_gf_metadata &lt;- read.csv(\data/cy_mice_metadata.csv\)
-
-mouse_gf &lt;- read.csv(\data/CY_mice_mastersizer.csv\) %&gt;%
-  omit_aggregates() %&gt;%
-  left_join(mouse_gf_metadata, by = c(\sample_number\ = \sample\)) %&gt;%
+  left_join(mouse_gf_metadata, by = c(&quot;sample_number&quot; = &quot;sample&quot;)) %&gt;%
   relocate(strain:Age..wks., .after = sample_number) %&gt;%
-  #filter(sample_number != \26\) # insufficient sample here - obscuration ~ 0.05
-  filter(Microbiome != \Dysbiosed\) # DSS-colitis seems to increase FPS, but insufficient n to say
+  #filter(sample_number != &quot;26&quot;) # insufficient sample here - obscuration ~ 0.05
+  filter(Microbiome != &quot;Dysbiosed&quot;) # DSS-colitis seems to increase FPS, but insufficient n to say
 
 mouse_gf_D50 &lt;- mouse_gf %&gt;%
   dplyr::select(sample_number, Microbiome, Sex, cage, Age..wks., Dx..50.) %&gt;%
   group_by(sample_number, Microbiome, Sex, cage, Age..wks.) %&gt;%
   dplyr::summarize(median = mean(Dx..50.))
-
+</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiYHN1bW1hcmlzZSgpYCBoYXMgZ3JvdXBlZCBvdXRwdXQgYnkgJ3NhbXBsZV9udW1iZXInLCAnTWljcm9iaW9tZScsICdTZXgnLCAnY2FnZScuIFlvdSBjYW4gb3ZlcnJpZGUgdXNpbmcgdGhlIGAuZ3JvdXBzYCBhcmd1bWVudC5cbiJ9 -->
+<pre><code>`summarise()` has grouped output by &#39;sample_number&#39;, &#39;Microbiome&#39;, &#39;Sex&#39;, &#39;cage&#39;. You can override using the `.groups` argument.</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5tb3VzZV9nZl9ENTBfc3VtbWFyeSA8LSBtb3VzZV9nZl9ENTAgJT4lXG4gIGdyb3VwX2J5KE1pY3JvYmlvbWUpICU+JVxuICBkcGx5cjo6c3VtbWFyaXplKG1lYW4gPSBtZWFuKG1lZGlhbiksIHNlID0gc2QobWVkaWFuKS9zcXJ0KGxlbmd0aChtZWRpYW4pKSlcbmBgYCJ9 -->
+<pre class="r"><code>
 mouse_gf_D50_summary &lt;- mouse_gf_D50 %&gt;%
   group_by(Microbiome) %&gt;%
-  dplyr::summarize(mean = mean(median), se = sd(median)/sqrt(length(median)))
-
-mouse_gf_curves &lt;- mouse_gf %&gt;%
-  dplyr::select(sample_number, Microbiome, Sex, cage, Age..wks., X0.01:X3500) %&gt;%
-  gather(key=size, value=volume, (ncol(.)-100):ncol(.)) %&gt;%
-  mutate(size = as.numeric(substr(size, 2, nchar(size)))) %&gt;%
-  group_by(sample_number, Microbiome, Sex, cage, Age..wks., size) %&gt;%
-  dplyr::summarize(mean=mean(volume)) %&gt;%
-  ungroup() %&gt;%
-  as.data.frame()
-
-mouse_gf_curves_summary &lt;- mouse_gf_curves %&gt;%
-  group_by(Microbiome, size) %&gt;%
-  dplyr::summarize(mean2=mean(mean), se=sd(mean)/sqrt(length(mean)))
-</code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-
-# Stats
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuIyBNb3VzZSBBYnhcbmxtZXIobWVkaWFuIH4gdGltZSArICgxIHwgZG9ub3IpLCBtb3VzZV9BYnhfRDUwKSAlPiVcbiAgc3VtbWFyeSgpXG4jICAgICAgICAgICAgIEVzdGltYXRlIFN0ZC4gRXJyb3IgICAgICBkZiB0IHZhbHVlIFByKD58dHwpICAgIFxuIyAoSW50ZXJjZXB0KSAgMTE5LjY4NCAgICAgMjYuODUwICAgOS4yODcgICA0LjQ1NyAgMC4wMDE0NiAqKiBcbiMgdGltZTEgICAgICAgICA3Mi4wMjYgICAgIDI5Ljg0NyAgIDguMDAwICAgMi40MTMgIDAuMDQyMzAgKiAgXG4jIHRpbWUyICAgICAgICAxNjkuODM2ICAgICAyOS44NDcgICA4LjAwMCAgIDUuNjkwICAwLjAwMDQ2ICoqKlxuXG4jIE1vdXNlIEdGIHZzLiBTUEZcbmxtKG1lZGlhbiB+IE1pY3JvYmlvbWUsIG1vdXNlX2dmX0Q1MFsxOjIyLF0pICU+JVxuICBzdW1tYXJ5KClcbiMgICAgICAgICAgICAgICBFc3RpbWF0ZSBTdGQuIEVycm9yIHQgdmFsdWUgUHIoPnx0fCkgICAgXG4jIChJbnRlcmNlcHQpICAgIDEzOS40NDEgICAgICA3LjA5OSAgMTkuNjQ0IDEuNTJlLTE0ICoqKlxuIyBNaWNyb2Jpb21lU1BGICAtMjguMTg0ICAgICAgOS42MTEgIC0yLjkzMiAgMC4wMDgyNCAqKiBcblxuXG5gYGBcbmBgYCJ9 --&gt;
-
-```r
-```r
-# Mouse Abx
+  dplyr::summarize(mean = mean(median), se = sd(median)/sqrt(length(median)))</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="stats" class="section level1">
+<h1>Stats</h1>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBNb3VzZSBBYnhcbmxtZXIobWVkaWFuIH4gdGltZSArICgxIHwgZG9ub3IpLCBtb3VzZV9BYnhfRDUwKSAlPiVcbiAgc3VtbWFyeSgpXG4jICAgICAgICAgICAgIEVzdGltYXRlIFN0ZC4gRXJyb3IgICAgICBkZiB0IHZhbHVlIFByKD58dHwpICAgIFxuIyAoSW50ZXJjZXB0KSAgMTE5LjY4NCAgICAgMjYuODUwICAgOS4yODcgICA0LjQ1NyAgMC4wMDE0NiAqKiBcbiMgdGltZTEgICAgICAgICA3Mi4wMjYgICAgIDI5Ljg0NyAgIDguMDAwICAgMi40MTMgIDAuMDQyMzAgKiAgXG4jIHRpbWUyICAgICAgICAxNjkuODM2ICAgICAyOS44NDcgICA4LjAwMCAgIDUuNjkwICAwLjAwMDQ2ICoqKlxuXG4jIE1vdXNlIEdGIHZzLiBTUEZcbmxtKG1lZGlhbiB+IE1pY3JvYmlvbWUsIG1vdXNlX2dmX0Q1MFsxOjIyLF0pICU+JVxuICBzdW1tYXJ5KClcbiMgICAgICAgICAgICAgICBFc3RpbWF0ZSBTdGQuIEVycm9yIHQgdmFsdWUgUHIoPnx0fCkgICAgXG4jIChJbnRlcmNlcHQpICAgIDEzOS40NDEgICAgICA3LjA5OSAgMTkuNjQ0IDEuNTJlLTE0ICoqKlxuIyBNaWNyb2Jpb21lU1BGICAtMjguMTg0ICAgICAgOS42MTEgIC0yLjkzMiAgMC4wMDgyNCAqKiBcblxuXG5gYGAifQ== -->
+<pre class="r"><code># Mouse Abx
 lmer(median ~ time + (1 | donor), mouse_Abx_D50) %&gt;%
   summary()
 #             Estimate Std. Error      df t value Pr(&gt;|t|)    
@@ -1896,48 +1891,35 @@ lm(median ~ Microbiome, mouse_gf_D50[1:22,]) %&gt;%
 # (Intercept)    139.441      7.099  19.644 1.52e-14 ***
 # MicrobiomeSPF  -28.184      9.611  -2.932  0.00824 ** 
 </code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-
-
-# Plot
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuIyBNb3VzZSBBYnhcbiMgUGxvdCBtZWRpYW5zXG5tb3VzZV9BYnhfcGxvdCA8LSBnZ3Bsb3QobW91c2VfQWJ4X0Q1MCwgYWVzKHggPSB0aW1lLCB5ID0gbWVkaWFuLCBjb2xvciA9IGRvbm9yLCBncm91cCA9IGRvbm9yKSkgK1xuICBnZW9tX3BvaW50KCkgK1xuICBnZW9tX2xpbmUoKSArXG4gIGdlb21fZXJyb3JiYXIoZGF0YSA9IG1vdXNlX0FieF9ENTBfc3VtbWFyeSwgYWVzKHg9dGltZSwgeW1pbj1tZWFuLCB5bWF4PW1lYW4pLFxuICAgICAgICAgICAgICAgIGNvbG9yID0gXFxyZWRcXCwgd2lkdGg9MC41LCBpbmhlcml0LmFlcyA9IEYpICtcbiAgZ2VvbV9lcnJvcmJhcihkYXRhID0gbW91c2VfQWJ4X0Q1MF9zdW1tYXJ5LCBhZXMoeD10aW1lLCB5bWluPW1lYW4tc2UsIHltYXg9bWVhbitzZSksXG4gICAgICAgICAgICAgICAgd2lkdGg9MC4yNSwgaW5oZXJpdC5hZXMgPSBGKSArIFxuICBsYWJzKHggPSBcXFRpbWUgKGRheXMpXFwsIHkgPSBcXE1lZGlhbiBGUFMgKM68bSlcXCwgY29sb3IgPSBcXENhZ2VcXCkgK1xuICBzY2FsZV95X2xvZzEwKCkgK1xuICBhbm5vdGF0ZShnZW9tID0gXFx0ZXh0XFwsIHggPSBjKDIsMyksIHkgPSBjKDI3MCwgNDg1KSwgbGFiZWwgPSBjKFxcKlxcLCBcXCoqKlxcKSwgc2l6ZSA9IDEwKSArXG4gIGdlb21faGxpbmUoeWludGVyY2VwdCA9IDUxMCwgYWxwaGEgPSAwKVxuXG4jIFBsb3QgY3VydmVzXG5tb3VzZV9BYnhfY3VydmVfcGxvdCA8LSBnZ3Bsb3QobW91c2VfQWJ4X2N1cnZlc19zdW1tYXJ5LCBhZXMoeD1zaXplLCB5ID0gbWVhbjIsIGNvbG9yID0gdGltZSwgZ3JvdXAgPSB0aW1lKSkgK1xuICBnZW9tX3JpYmJvbihhZXMoeW1pbj1tZWFuMi1zZSwgeW1heD1tZWFuMitzZSwgZmlsbCA9IHRpbWUpLCBjb2xvciA9IE5BLCBhbHBoYSA9IDAuNSkgK1xuICBnZW9tX2xpbmUoKSArXG4gIGdlb21faGxpbmUoY29sb3IgPSBcXGJsYWNrXFwsIHlpbnRlcmNlcHQgPSAwLCBsaW5ldHlwZSA9IFxcZGFzaGVkXFwpICtcbiAgbGFicyh4ID0gXFxQYXJ0aWNsZSBzaXplICjOvG0pXFwsIHkgPSBcXFBhcnRpY2xlcyBieSB2b2x1bWUgKCUpXFwsIGNvbG9yID0gXFxUaW1lIChkYXlzKVxcLCBmaWxsID0gXFxUaW1lIChkYXlzKVxcKSArXG4gIHNjYWxlX3hfbG9nMTAobGltaXRzPWMoMC4zNTcsIDIzOTApKVxuXG5cbiMgTW91c2UgR0YgdnMuIFNQRlxuIyBQbG90IG1lZGlhbnNcbm1vdXNlX2dmX3Bsb3QgPC0gZ2dwbG90KG1vdXNlX2dmX0Q1MCwgYWVzKHggPSBNaWNyb2Jpb21lLCB5ID0gbWVkaWFuLCBjb2xvciA9IGNhZ2UpKSArXG4gIGdlb21fcG9pbnQocG9zaXRpb24gPSBwb3NpdGlvbl9qaXR0ZXIod2lkdGggPSAwLjA1LCBoZWlnaHQgPSAwKSkgK1xuICBnZW9tX2Vycm9yYmFyKGRhdGEgPSBtb3VzZV9nZl9ENTBfc3VtbWFyeSwgYWVzKHg9TWljcm9iaW9tZSwgeW1pbj1tZWFuLCB5bWF4PW1lYW4pLFxuICAgICAgICAgICAgICAgIGNvbG9yID0gXFxyZWRcXCwgd2lkdGg9MC41LCBpbmhlcml0LmFlcyA9IEYpICtcbiAgZ2VvbV9lcnJvcmJhcihkYXRhID0gbW91c2VfZ2ZfRDUwX3N1bW1hcnksIGFlcyh4PU1pY3JvYmlvbWUsIHltaW49bWVhbi1zZSwgeW1heD1tZWFuK3NlKSxcbiAgICAgICAgICAgICAgICB3aWR0aD0wLjI1LCBpbmhlcml0LmFlcyA9IEYpICsgXG4gIGxhYnMoeCA9IFxcTWljcm9iaW9tZVxcLCB5ID0gXFxNZWRpYW4gRlBTICjOvG0pXFwsIGNvbG9yID0gXFxDYWdlXFwpICtcbiAgYW5ub3RhdGUoZ2VvbSA9IFxcdGV4dFxcLCB4ID0gYygyKSwgeSA9IGMoMTU1KSwgbGFiZWwgPSBjKFxcKipcXCksIHNpemUgPSAxMCkgK1xuICBnZW9tX2hsaW5lKHlpbnRlcmNlcHQgPSAyMDAsIGFscGhhID0gMCkgK1xuICBzY2FsZV95X2xvZzEwKClcblxubW91c2VfZ2ZfY3VydmVfcGxvdCA8LSBnZ3Bsb3QobW91c2VfZ2ZfY3VydmVzX3N1bW1hcnksIGFlcyh4PXNpemUsIHkgPSBtZWFuMiwgY29sb3IgPSBNaWNyb2Jpb21lLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBncm91cCA9IE1pY3JvYmlvbWUpKSArXG4gIGdlb21fcmliYm9uKGFlcyh5bWluPW1lYW4yLXNlLCB5bWF4PW1lYW4yK3NlLCBmaWxsID0gTWljcm9iaW9tZSksIGNvbG9yID0gTkEsIGFscGhhID0gMC41KSArXG4gIGdlb21fbGluZSgpICtcbiAgZ2VvbV9obGluZShjb2xvciA9IFxcYmxhY2tcXCwgeWludGVyY2VwdCA9IDAsIGxpbmV0eXBlID0gXFxkYXNoZWRcXCkgK1xuICBsYWJzKHggPSBcXFBhdHJpY2xlIHNpemUgKM68bSlcXCwgeSA9IFxcUGFydGljbGVzIGJ5IHZvbHVtZSAoJSlcXCwgY29sb3IgPSBcXE1pY3JvYmlvbWVcXCwgZmlsbCA9IFxcTWljcm9iaW9tZVxcKSArXG4gIHNjYWxlX3hfbG9nMTAobGltaXRzPWMoMC4zNTcsIDIzOTApKVxuXG5cblxuYGBgXG5gYGAifQ== --&gt;
-
-```r
-```r
-# Mouse Abx
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="plot" class="section level1">
+<h1>Plot</h1>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBNb3VzZSBBYnhcbiMgUGxvdCBtZWRpYW5zXG5tb3VzZV9BYnhfcGxvdCA8LSBnZ3Bsb3QobW91c2VfQWJ4X0Q1MCwgYWVzKHggPSB0aW1lLCB5ID0gbWVkaWFuLCBjb2xvciA9IGRvbm9yLCBncm91cCA9IGRvbm9yKSkgK1xuICBnZW9tX3BvaW50KCkgK1xuICBnZW9tX2xpbmUoKSArXG4gIGdlb21fZXJyb3JiYXIoZGF0YSA9IG1vdXNlX0FieF9ENTBfc3VtbWFyeSwgYWVzKHg9dGltZSwgeW1pbj1tZWFuLCB5bWF4PW1lYW4pLFxuICAgICAgICAgICAgICAgIGNvbG9yID0gXCJyZWRcIiwgd2lkdGg9MC41LCBpbmhlcml0LmFlcyA9IEYpICtcbiAgZ2VvbV9lcnJvcmJhcihkYXRhID0gbW91c2VfQWJ4X0Q1MF9zdW1tYXJ5LCBhZXMoeD10aW1lLCB5bWluPW1lYW4tc2UsIHltYXg9bWVhbitzZSksXG4gICAgICAgICAgICAgICAgd2lkdGg9MC4yNSwgaW5oZXJpdC5hZXMgPSBGKSArIFxuICBsYWJzKHggPSBcIlRpbWUgKGRheXMpXCIsIHkgPSBcIk1lZGlhbiBGUFMgKM68bSlcIiwgY29sb3IgPSBcIkNhZ2VcIikgK1xuICBzY2FsZV95X2xvZzEwKCkgK1xuICBhbm5vdGF0ZShnZW9tID0gXCJ0ZXh0XCIsIHggPSBjKDIsMyksIHkgPSBjKDI3MCwgNDg1KSwgbGFiZWwgPSBjKFwiKlwiLCBcIioqKlwiKSwgc2l6ZSA9IDEwKSArXG4gIGdlb21faGxpbmUoeWludGVyY2VwdCA9IDUxMCwgYWxwaGEgPSAwKVxuXG4jIFBsb3QgY3VydmVzXG5tb3VzZV9BYnhfY3VydmVfcGxvdCA8LSBnZ3Bsb3QobW91c2VfQWJ4X2N1cnZlc19zdW1tYXJ5LCBhZXMoeD1zaXplLCB5ID0gbWVhbjIsIGNvbG9yID0gdGltZSwgZ3JvdXAgPSB0aW1lKSkgK1xuICBnZW9tX3JpYmJvbihhZXMoeW1pbj1tZWFuMi1zZSwgeW1heD1tZWFuMitzZSwgZmlsbCA9IHRpbWUpLCBjb2xvciA9IE5BLCBhbHBoYSA9IDAuNSkgK1xuICBnZW9tX2xpbmUoKSArXG4gIGdlb21faGxpbmUoY29sb3IgPSBcImJsYWNrXCIsIHlpbnRlcmNlcHQgPSAwLCBsaW5ldHlwZSA9IFwiZGFzaGVkXCIpICtcbiAgbGFicyh4ID0gXCJQYXJ0aWNsZSBzaXplICjOvG0pXCIsIHkgPSBcIlBhcnRpY2xlcyBieSB2b2x1bWUgKCUpXCIsIGNvbG9yID0gXCJUaW1lIChkYXlzKVwiLCBmaWxsID0gXCJUaW1lIChkYXlzKVwiKSArXG4gIHNjYWxlX3hfbG9nMTAobGltaXRzPWMoMC4zNTcsIDIzOTApKVxuXG5cbiMgTW91c2UgR0YgdnMuIFNQRlxuIyBQbG90IG1lZGlhbnNcbm1vdXNlX2dmX3Bsb3QgPC0gZ2dwbG90KG1vdXNlX2dmX0Q1MCwgYWVzKHggPSBNaWNyb2Jpb21lLCB5ID0gbWVkaWFuLCBjb2xvciA9IGNhZ2UpKSArXG4gIGdlb21fcG9pbnQocG9zaXRpb24gPSBwb3NpdGlvbl9qaXR0ZXIod2lkdGggPSAwLjA1LCBoZWlnaHQgPSAwKSkgK1xuICBnZW9tX2Vycm9yYmFyKGRhdGEgPSBtb3VzZV9nZl9ENTBfc3VtbWFyeSwgYWVzKHg9TWljcm9iaW9tZSwgeW1pbj1tZWFuLCB5bWF4PW1lYW4pLFxuICAgICAgICAgICAgICAgIGNvbG9yID0gXCJyZWRcIiwgd2lkdGg9MC41LCBpbmhlcml0LmFlcyA9IEYpICtcbiAgZ2VvbV9lcnJvcmJhcihkYXRhID0gbW91c2VfZ2ZfRDUwX3N1bW1hcnksIGFlcyh4PU1pY3JvYmlvbWUsIHltaW49bWVhbi1zZSwgeW1heD1tZWFuK3NlKSxcbiAgICAgICAgICAgICAgICB3aWR0aD0wLjI1LCBpbmhlcml0LmFlcyA9IEYpICsgXG4gIGxhYnMoeCA9IFwiTWljcm9iaW9tZVwiLCB5ID0gXCJNZWRpYW4gRlBTICjOvG0pXCIsIGNvbG9yID0gXCJDYWdlXCIpICtcbiAgYW5ub3RhdGUoZ2VvbSA9IFwidGV4dFwiLCB4ID0gYygyKSwgeSA9IGMoMTU1KSwgbGFiZWwgPSBjKFwiKipcIiksIHNpemUgPSAxMCkgK1xuICBnZW9tX2hsaW5lKHlpbnRlcmNlcHQgPSAyMDAsIGFscGhhID0gMCkgK1xuICBzY2FsZV95X2xvZzEwKClcblxubW91c2VfZ2ZfY3VydmVfcGxvdCA8LSBnZ3Bsb3QobW91c2VfZ2ZfY3VydmVzX3N1bW1hcnksIGFlcyh4PXNpemUsIHkgPSBtZWFuMiwgY29sb3IgPSBNaWNyb2Jpb21lLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBncm91cCA9IE1pY3JvYmlvbWUpKSArXG4gIGdlb21fcmliYm9uKGFlcyh5bWluPW1lYW4yLXNlLCB5bWF4PW1lYW4yK3NlLCBmaWxsID0gTWljcm9iaW9tZSksIGNvbG9yID0gTkEsIGFscGhhID0gMC41KSArXG4gIGdlb21fbGluZSgpICtcbiAgZ2VvbV9obGluZShjb2xvciA9IFwiYmxhY2tcIiwgeWludGVyY2VwdCA9IDAsIGxpbmV0eXBlID0gXCJkYXNoZWRcIikgK1xuICBsYWJzKHggPSBcIlBhdHJpY2xlIHNpemUgKM68bSlcIiwgeSA9IFwiUGFydGljbGVzIGJ5IHZvbHVtZSAoJSlcIiwgY29sb3IgPSBcIk1pY3JvYmlvbWVcIiwgZmlsbCA9IFwiTWljcm9iaW9tZVwiKSArXG4gIHNjYWxlX3hfbG9nMTAobGltaXRzPWMoMC4zNTcsIDIzOTApKVxuXG5cblxuYGBgIn0= -->
+<pre class="r"><code># Mouse Abx
 # Plot medians
 mouse_Abx_plot &lt;- ggplot(mouse_Abx_D50, aes(x = time, y = median, color = donor, group = donor)) +
   geom_point() +
   geom_line() +
   geom_errorbar(data = mouse_Abx_D50_summary, aes(x=time, ymin=mean, ymax=mean),
-                color = \red\, width=0.5, inherit.aes = F) +
+                color = &quot;red&quot;, width=0.5, inherit.aes = F) +
   geom_errorbar(data = mouse_Abx_D50_summary, aes(x=time, ymin=mean-se, ymax=mean+se),
                 width=0.25, inherit.aes = F) + 
-  labs(x = \Time (days)\, y = \Median FPS (μm)\, color = \Cage\) +
+  labs(x = &quot;Time (days)&quot;, y = &quot;Median FPS (μm)&quot;, color = &quot;Cage&quot;) +
   scale_y_log10() +
-  annotate(geom = \text\, x = c(2,3), y = c(270, 485), label = c(\*\, \***\), size = 10) +
+  annotate(geom = &quot;text&quot;, x = c(2,3), y = c(270, 485), label = c(&quot;*&quot;, &quot;***&quot;), size = 10) +
   geom_hline(yintercept = 510, alpha = 0)
 
 # Plot curves
 mouse_Abx_curve_plot &lt;- ggplot(mouse_Abx_curves_summary, aes(x=size, y = mean2, color = time, group = time)) +
   geom_ribbon(aes(ymin=mean2-se, ymax=mean2+se, fill = time), color = NA, alpha = 0.5) +
   geom_line() +
-  geom_hline(color = \black\, yintercept = 0, linetype = \dashed\) +
-  labs(x = \Particle size (μm)\, y = \Particles by volume (%)\, color = \Time (days)\, fill = \Time (days)\) +
+  geom_hline(color = &quot;black&quot;, yintercept = 0, linetype = &quot;dashed&quot;) +
+  labs(x = &quot;Particle size (μm)&quot;, y = &quot;Particles by volume (%)&quot;, color = &quot;Time (days)&quot;, fill = &quot;Time (days)&quot;) +
   scale_x_log10(limits=c(0.357, 2390))
 
 
@@ -1946,11 +1928,11 @@ mouse_Abx_curve_plot &lt;- ggplot(mouse_Abx_curves_summary, aes(x=size, y = mean
 mouse_gf_plot &lt;- ggplot(mouse_gf_D50, aes(x = Microbiome, y = median, color = cage)) +
   geom_point(position = position_jitter(width = 0.05, height = 0)) +
   geom_errorbar(data = mouse_gf_D50_summary, aes(x=Microbiome, ymin=mean, ymax=mean),
-                color = \red\, width=0.5, inherit.aes = F) +
+                color = &quot;red&quot;, width=0.5, inherit.aes = F) +
   geom_errorbar(data = mouse_gf_D50_summary, aes(x=Microbiome, ymin=mean-se, ymax=mean+se),
                 width=0.25, inherit.aes = F) + 
-  labs(x = \Microbiome\, y = \Median FPS (μm)\, color = \Cage\) +
-  annotate(geom = \text\, x = c(2), y = c(155), label = c(\**\), size = 10) +
+  labs(x = &quot;Microbiome&quot;, y = &quot;Median FPS (μm)&quot;, color = &quot;Cage&quot;) +
+  annotate(geom = &quot;text&quot;, x = c(2), y = c(155), label = c(&quot;**&quot;), size = 10) +
   geom_hline(yintercept = 200, alpha = 0) +
   scale_y_log10()
 
@@ -1958,32 +1940,19 @@ mouse_gf_curve_plot &lt;- ggplot(mouse_gf_curves_summary, aes(x=size, y = mean2,
                                                            group = Microbiome)) +
   geom_ribbon(aes(ymin=mean2-se, ymax=mean2+se, fill = Microbiome), color = NA, alpha = 0.5) +
   geom_line() +
-  geom_hline(color = \black\, yintercept = 0, linetype = \dashed\) +
-  labs(x = \Patricle size (μm)\, y = \Particles by volume (%)\, color = \Microbiome\, fill = \Microbiome\) +
+  geom_hline(color = &quot;black&quot;, yintercept = 0, linetype = &quot;dashed&quot;) +
+  labs(x = &quot;Patricle size (μm)&quot;, y = &quot;Particles by volume (%)&quot;, color = &quot;Microbiome&quot;, fill = &quot;Microbiome&quot;) +
   scale_x_log10(limits=c(0.357, 2390))
 </code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-
-## Fig. S9 - confirm mouse findings without microbe peak
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuXG4jIExvY2FsIG1pbmltdW0gYXJvdW5kIDIgbWljcm9ucyAtIHVzaW5nIHRoaXMgYXMgY3V0b2ZmIGFuZCByZWNvbXB1dGluZ1xuXG4jIEFieFxuXG5tb3VzZV9BYnhfbm9iYWMgPC0gbW91c2VfQWJ4X2N1cnZlcyAlPiVcbiAgZmlsdGVyKHNpemUgPiAyKSAlPiVcbiAgZ3JvdXBfYnkocHJvamVjdCwgZG9ub3IsIGNvbmQsIHRpbWUpICU+JVxuICBkcGx5cjo6c3VtbWFyaXplKHNpemUgPSBzaXplLCBtZWFuX2FkaiA9IDEwMCptZWFuL3N1bShtZWFuKSlcblxubW91c2VfQWJ4X25vYmFjX3N1bW1hcnkgPC0gbW91c2VfQWJ4X25vYmFjICU+JVxuICBncm91cF9ieSh0aW1lLCBzaXplKSAlPiVcbiAgZHBseXI6OnN1bW1hcml6ZShtZWFuMj1tZWFuKG1lYW5fYWRqKSwgc2U9c2QobWVhbl9hZGopL3NxcnQobGVuZ3RoKG1lYW5fYWRqKSkpXG5cbm1vdXNlX0FieF9ub2JhY19jdXJ2ZV9wbG90IDwtIGdncGxvdChtb3VzZV9BYnhfbm9iYWNfc3VtbWFyeSxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhZXMoeD1zaXplLCB5ID0gbWVhbjIsIGNvbG9yID0gdGltZSwgZ3JvdXAgPSB0aW1lKSkgK1xuICBnZW9tX3JpYmJvbihhZXMoeW1pbj1tZWFuMi1zZSwgeW1heD1tZWFuMitzZSwgZmlsbCA9IHRpbWUpLCBjb2xvciA9IE5BLCBhbHBoYSA9IDAuNSkgK1xuICBnZW9tX2xpbmUoKSArXG4gIGdlb21faGxpbmUoY29sb3IgPSBcXGJsYWNrXFwsIHlpbnRlcmNlcHQgPSAwLCBsaW5ldHlwZSA9IFxcZGFzaGVkXFwpICtcbiAgbGFicyh4ID0gXFxQYXJ0aWNsZSBzaXplICjOvG0pXFwsIHkgPSBcXFBhcnRpY2xlcyBieSB2b2x1bWUgKCUpXFwsIGNvbG9yID0gXFxUaW1lIChkYXlzKVxcLCBmaWxsID0gXFxUaW1lIChkYXlzKVxcKSArXG4gIHNjYWxlX3hfbG9nMTAobGltaXRzPWMoMC4zNTcsIDIzOTApKVxuXG4jIyBSZWNvbXB1dGUgbWVkaWFuc1xud2VpZ2h0ZWRfbWVhbiA8LSBmdW5jdGlvbihiaW5zLCBmcmVxcykge1xuICBzdW0oYmlucyAqIGZyZXFzKSAvIHN1bShmcmVxcylcbn1cblxubW91c2VfQWJ4X25vYmFjX0Q1MCA8LSBtb3VzZV9BYnhfRDUwICU+JVxuICBtdXRhdGUod2VpZ2h0ZWRfbWVhbiA9IE5BKSAlPiVcbiAgYXMuZGF0YS5mcmFtZSgpXG5cbmZvcihyIGluIDE6bnJvdyhtb3VzZV9BYnhfbm9iYWNfRDUwKSkge1xuICBcbiB0bXAgPC0gbW91c2VfQWJ4X25vYmFjICU+JVxuICAgIGZpbHRlcihkb25vciA9PSBtb3VzZV9BYnhfbm9iYWNfRDUwW3IsIFxcZG9ub3JcXF0gJlxuICAgICAgICAgICAgIGNvbmQgPT0gbW91c2VfQWJ4X25vYmFjX0Q1MFtyLCBcXGNvbmRcXF0gJlxuICAgICAgICAgICAgIHRpbWUgPT0gbW91c2VfQWJ4X25vYmFjX0Q1MFtyLCBcXHRpbWVcXF0pXG4gXG4gIG1vdXNlX0FieF9ub2JhY19ENTBbcixcXHdlaWdodGVkX21lYW5cXF0gPC0gd2VpZ2h0ZWRfbWVhbih0bXAkc2l6ZSwgdG1wJG1lYW5fYWRqKVxuICAgIFxufVxuXG5sbWVyKHdlaWdodGVkX21lYW4gfiB0aW1lICsgKDEgfCBkb25vciksIG1vdXNlX0FieF9ub2JhY19ENTApICU+JVxuICBzdW1tYXJ5KClcbiMgdGltZTEgICAgICAgICA1Mi41ODcgICAgIDMzLjY1NSAgIDguMDAwICAgMS41NjMgIDAuMTU2NzkgICAgXG4jIHRpbWUyICAgICAgICAxNjEuNDA1ICAgICAzMy42NTUgICA4LjAwMCAgIDQuNzk2ICAwLjAwMTM2ICoqIFxuXG5tb3VzZV9BYnhfbm9iYWNfRDUwX3N1bW1hcnkgPC0gbW91c2VfQWJ4X25vYmFjX0Q1MCAlPiVcbiAgZ3JvdXBfYnkodGltZSkgJT4lXG4gIGRwbHlyOjpzdW1tYXJpemUobWVhbiA9IG1lYW4od2VpZ2h0ZWRfbWVhbiksIHNlID0gc2Qod2VpZ2h0ZWRfbWVhbikvc3FydChsZW5ndGgod2VpZ2h0ZWRfbWVhbikpKVxuXG5tb3VzZV9BYnhfbm9iYWNfcGxvdCA8LSBnZ3Bsb3QobW91c2VfQWJ4X25vYmFjX0Q1MCxcbiAgICAgICAgICAgICAgICAgICAgICAgICBhZXMoeCA9IHRpbWUsIHkgPSB3ZWlnaHRlZF9tZWFuLCBjb2xvciA9IGRvbm9yLCBncm91cCA9IGRvbm9yKSkgK1xuICBnZW9tX3BvaW50KCkgK1xuICBnZW9tX2xpbmUoKSArXG4gIGdlb21fZXJyb3JiYXIoZGF0YSA9IG1vdXNlX0FieF9ub2JhY19ENTBfc3VtbWFyeSwgYWVzKHg9dGltZSwgeW1pbj1tZWFuLCB5bWF4PW1lYW4pLFxuICAgICAgICAgICAgICAgIGNvbG9yID0gXFxyZWRcXCwgd2lkdGg9MC41LCBpbmhlcml0LmFlcyA9IEYpICtcbiAgZ2VvbV9lcnJvcmJhcihkYXRhID0gbW91c2VfQWJ4X25vYmFjX0Q1MF9zdW1tYXJ5LCBhZXMoeD10aW1lLCB5bWluPW1lYW4tc2UsIHltYXg9bWVhbitzZSksXG4gICAgICAgICAgICAgICAgd2lkdGg9MC4yNSwgaW5oZXJpdC5hZXMgPSBGKSArIFxuICBsYWJzKHggPSBcXFRpbWUgKGRheXMpXFwsIHkgPSBcXEFkanVzdGVkIG1lYW4gRlBTICjOvG0pXFwsIGNvbG9yID0gXFxDYWdlXFwpICtcbiAgc2NhbGVfeV9sb2cxMCgpICtcbiAgYW5ub3RhdGUoZ2VvbSA9IFxcdGV4dFxcLCB4ID0gYygzKSwgeSA9IGMoNTI1KSwgbGFiZWwgPSBjKFxcKipcXCksIHNpemUgPSAxMCkgK1xuICBnZW9tX2hsaW5lKHlpbnRlcmNlcHQgPSA2MDAsIGFscGhhID0gMClcblxuXG5cbiMgR0Zcbm1vdXNlX2dmX25vYmFjIDwtIG1vdXNlX2dmX2N1cnZlcyAlPiVcbiAgZmlsdGVyKHNpemUgPiAyKSAlPiVcbiAgZ3JvdXBfYnkoc2FtcGxlX251bWJlciwgTWljcm9iaW9tZSwgU2V4LCBjYWdlLCBBZ2UuLndrcy4pICU+JVxuICBkcGx5cjo6c3VtbWFyaXplKHNpemUgPSBzaXplLCBtZWFuX2FkaiA9IDEwMCptZWFuL3N1bShtZWFuKSlcblxubW91c2VfZ2Zfbm9iYWNfc3VtbWFyeSA8LSBtb3VzZV9nZl9ub2JhYyAlPiVcbiAgZ3JvdXBfYnkoTWljcm9iaW9tZSwgc2l6ZSkgJT4lXG4gIGRwbHlyOjpzdW1tYXJpemUobWVhbjI9bWVhbihtZWFuX2FkaiksIHNlPXNkKG1lYW5fYWRqKS9zcXJ0KGxlbmd0aChtZWFuX2FkaikpKVxuXG5tb3VzZV9nZl9ub2JhY19jdXJ2ZV9wbG90IDwtIGdncGxvdChtb3VzZV9nZl9ub2JhY19zdW1tYXJ5LFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFlcyh4PXNpemUsIHkgPSBtZWFuMixcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY29sb3IgPSBNaWNyb2Jpb21lLCBncm91cCA9IE1pY3JvYmlvbWUpKSArXG4gIGdlb21fcmliYm9uKGFlcyh5bWluPW1lYW4yLXNlLCB5bWF4PW1lYW4yK3NlLCBmaWxsID0gTWljcm9iaW9tZSksXG4gICAgICAgICAgICAgIGNvbG9yID0gTkEsIGFscGhhID0gMC41KSArXG4gIGdlb21fbGluZSgpICtcbiAgZ2VvbV9obGluZShjb2xvciA9IFxcYmxhY2tcXCwgeWludGVyY2VwdCA9IDAsIGxpbmV0eXBlID0gXFxkYXNoZWRcXCkgK1xuICBsYWJzKHggPSBcXFBhcnRpY2xlIHNpemUgKM68bSlcXCwgeSA9IFxcUGFydGljbGVzIGJ5IHZvbHVtZSAoJSlcXCxcbiAgICAgICBjb2xvciA9IFxcTWljcm9iaW9tZVxcLCBmaWxsID0gXFxNaWNyb2Jpb21lXFwpICtcbiAgc2NhbGVfeF9sb2cxMChsaW1pdHM9YygwLjM1NywgMjM5MCkpXG5cblxubW91c2VfZ2Zfbm9iYWNfRDUwIDwtIG1vdXNlX2dmX0Q1MCAlPiVcbiAgbXV0YXRlKHdlaWdodGVkX21lYW4gPSBOQSkgJT4lXG4gIGFzLmRhdGEuZnJhbWUoKVxuXG5mb3IociBpbiAxOm5yb3cobW91c2VfZ2Zfbm9iYWNfRDUwKSkge1xuICBcbiB0bXAgPC0gbW91c2VfZ2Zfbm9iYWMgJT4lXG4gICAgZmlsdGVyKHNhbXBsZV9udW1iZXIgPT0gbW91c2VfZ2Zfbm9iYWNfRDUwW3IsIFxcc2FtcGxlX251bWJlclxcXSlcbiBcbiAgbW91c2VfZ2Zfbm9iYWNfRDUwW3IsXFx3ZWlnaHRlZF9tZWFuXFxdIDwtIHdlaWdodGVkX21lYW4odG1wJHNpemUsIHRtcCRtZWFuX2FkailcbiAgICBcbn1cblxubG0od2VpZ2h0ZWRfbWVhbiB+IE1pY3JvYmlvbWUsIG1vdXNlX2dmX25vYmFjX0Q1MCkgJT4lXG4gIHN1bW1hcnkoKVxuIyBwID0gMC4wNDg5ICogOilcblxubW91c2VfZ2Zfbm9iYWNfRDUwX3N1bW1hcnkgPC0gbW91c2VfZ2Zfbm9iYWNfRDUwICU+JVxuICBncm91cF9ieShNaWNyb2Jpb21lKSAlPiVcbiAgZHBseXI6OnN1bW1hcml6ZShtZWFuID0gbWVhbih3ZWlnaHRlZF9tZWFuKSwgc2UgPSBzZCh3ZWlnaHRlZF9tZWFuKS9zcXJ0KGxlbmd0aCh3ZWlnaHRlZF9tZWFuKSkpXG4gIFxuXG5tb3VzZV9nZl9ub2JhY19wbG90IDwtIGdncGxvdChtb3VzZV9nZl9ub2JhY19ENTAsIGFlcyh4ID0gTWljcm9iaW9tZSwgeSA9IHdlaWdodGVkX21lYW4sIGNvbG9yID0gY2FnZSkpICtcbiAgZ2VvbV9wb2ludChwb3NpdGlvbiA9IHBvc2l0aW9uX2ppdHRlcih3aWR0aCA9IDAuMDUsIGhlaWdodCA9IDApKSArXG4gIGdlb21fZXJyb3JiYXIoZGF0YSA9IG1vdXNlX2dmX25vYmFjX0Q1MF9zdW1tYXJ5LCBhZXMoeD1NaWNyb2Jpb21lLCB5bWluPW1lYW4sIHltYXg9bWVhbiksXG4gICAgICAgICAgICAgICAgY29sb3IgPSBcXHJlZFxcLCB3aWR0aD0wLjUsIGluaGVyaXQuYWVzID0gRikgK1xuICBnZW9tX2Vycm9yYmFyKGRhdGEgPSBtb3VzZV9nZl9ub2JhY19ENTBfc3VtbWFyeSwgYWVzKHg9TWljcm9iaW9tZSwgeW1pbj1tZWFuLXNlLCB5bWF4PW1lYW4rc2UpLFxuICAgICAgICAgICAgICAgIHdpZHRoPTAuMjUsIGluaGVyaXQuYWVzID0gRikgKyBcbiAgbGFicyh4ID0gXFxNaWNyb2Jpb21lXFwsIHkgPSBcXEFkanVzdGVkIG1lYW4gRlBTICjOvG0pXFwsIGNvbG9yID0gXFxDYWdlXFwpICtcbiAgYW5ub3RhdGUoZ2VvbSA9IFxcdGV4dFxcLCB4ID0gYygyKSwgeSA9IGMoMTkwKSwgbGFiZWwgPSBjKFxcKlxcKSwgc2l6ZSA9IDEwKSArXG4gIHNjYWxlX3lfbG9nMTAoKVxuXG5gYGBcbmBgYCJ9 --&gt;
-
-```r
-```r
-
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<div id="fig.-s9---confirm-mouse-findings-without-microbe-peak" class="section level2">
+<h2>Fig. S9 - confirm mouse findings without microbe peak</h2>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG4jIExvY2FsIG1pbmltdW0gYXJvdW5kIDIgbWljcm9ucyAtIHVzaW5nIHRoaXMgYXMgY3V0b2ZmIGFuZCByZWNvbXB1dGluZ1xuXG4jIEFieFxuXG5tb3VzZV9BYnhfbm9iYWMgPC0gbW91c2VfQWJ4X2N1cnZlcyAlPiVcbiAgZmlsdGVyKHNpemUgPiAyKSAlPiVcbiAgZ3JvdXBfYnkocHJvamVjdCwgZG9ub3IsIGNvbmQsIHRpbWUpICU+JVxuICBkcGx5cjo6c3VtbWFyaXplKHNpemUgPSBzaXplLCBtZWFuX2FkaiA9IDEwMCptZWFuL3N1bShtZWFuKSlcblxubW91c2VfQWJ4X25vYmFjX3N1bW1hcnkgPC0gbW91c2VfQWJ4X25vYmFjICU+JVxuICBncm91cF9ieSh0aW1lLCBzaXplKSAlPiVcbiAgZHBseXI6OnN1bW1hcml6ZShtZWFuMj1tZWFuKG1lYW5fYWRqKSwgc2U9c2QobWVhbl9hZGopL3NxcnQobGVuZ3RoKG1lYW5fYWRqKSkpXG5cbm1vdXNlX0FieF9ub2JhY19jdXJ2ZV9wbG90IDwtIGdncGxvdChtb3VzZV9BYnhfbm9iYWNfc3VtbWFyeSxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhZXMoeD1zaXplLCB5ID0gbWVhbjIsIGNvbG9yID0gdGltZSwgZ3JvdXAgPSB0aW1lKSkgK1xuICBnZW9tX3JpYmJvbihhZXMoeW1pbj1tZWFuMi1zZSwgeW1heD1tZWFuMitzZSwgZmlsbCA9IHRpbWUpLCBjb2xvciA9IE5BLCBhbHBoYSA9IDAuNSkgK1xuICBnZW9tX2xpbmUoKSArXG4gIGdlb21faGxpbmUoY29sb3IgPSBcImJsYWNrXCIsIHlpbnRlcmNlcHQgPSAwLCBsaW5ldHlwZSA9IFwiZGFzaGVkXCIpICtcbiAgbGFicyh4ID0gXCJQYXJ0aWNsZSBzaXplICjOvG0pXCIsIHkgPSBcIlBhcnRpY2xlcyBieSB2b2x1bWUgKCUpXCIsIGNvbG9yID0gXCJUaW1lIChkYXlzKVwiLCBmaWxsID0gXCJUaW1lIChkYXlzKVwiKSArXG4gIHNjYWxlX3hfbG9nMTAobGltaXRzPWMoMC4zNTcsIDIzOTApKVxuXG4jIyBSZWNvbXB1dGUgbWVkaWFuc1xud2VpZ2h0ZWRfbWVhbiA8LSBmdW5jdGlvbihiaW5zLCBmcmVxcykge1xuICBzdW0oYmlucyAqIGZyZXFzKSAvIHN1bShmcmVxcylcbn1cblxubW91c2VfQWJ4X25vYmFjX0Q1MCA8LSBtb3VzZV9BYnhfRDUwICU+JVxuICBtdXRhdGUod2VpZ2h0ZWRfbWVhbiA9IE5BKSAlPiVcbiAgYXMuZGF0YS5mcmFtZSgpXG5cbmZvcihyIGluIDE6bnJvdyhtb3VzZV9BYnhfbm9iYWNfRDUwKSkge1xuICBcbiB0bXAgPC0gbW91c2VfQWJ4X25vYmFjICU+JVxuICAgIGZpbHRlcihkb25vciA9PSBtb3VzZV9BYnhfbm9iYWNfRDUwW3IsIFwiZG9ub3JcIl0gJlxuICAgICAgICAgICAgIGNvbmQgPT0gbW91c2VfQWJ4X25vYmFjX0Q1MFtyLCBcImNvbmRcIl0gJlxuICAgICAgICAgICAgIHRpbWUgPT0gbW91c2VfQWJ4X25vYmFjX0Q1MFtyLCBcInRpbWVcIl0pXG4gXG4gIG1vdXNlX0FieF9ub2JhY19ENTBbcixcIndlaWdodGVkX21lYW5cIl0gPC0gd2VpZ2h0ZWRfbWVhbih0bXAkc2l6ZSwgdG1wJG1lYW5fYWRqKVxuICAgIFxufVxuXG5sbWVyKHdlaWdodGVkX21lYW4gfiB0aW1lICsgKDEgfCBkb25vciksIG1vdXNlX0FieF9ub2JhY19ENTApICU+JVxuICBzdW1tYXJ5KClcbiMgdGltZTEgICAgICAgICA1Mi41ODcgICAgIDMzLjY1NSAgIDguMDAwICAgMS41NjMgIDAuMTU2NzkgICAgXG4jIHRpbWUyICAgICAgICAxNjEuNDA1ICAgICAzMy42NTUgICA4LjAwMCAgIDQuNzk2ICAwLjAwMTM2ICoqIFxuXG5tb3VzZV9BYnhfbm9iYWNfRDUwX3N1bW1hcnkgPC0gbW91c2VfQWJ4X25vYmFjX0Q1MCAlPiVcbiAgZ3JvdXBfYnkodGltZSkgJT4lXG4gIGRwbHlyOjpzdW1tYXJpemUobWVhbiA9IG1lYW4od2VpZ2h0ZWRfbWVhbiksIHNlID0gc2Qod2VpZ2h0ZWRfbWVhbikvc3FydChsZW5ndGgod2VpZ2h0ZWRfbWVhbikpKVxuXG5tb3VzZV9BYnhfbm9iYWNfcGxvdCA8LSBnZ3Bsb3QobW91c2VfQWJ4X25vYmFjX0Q1MCxcbiAgICAgICAgICAgICAgICAgICAgICAgICBhZXMoeCA9IHRpbWUsIHkgPSB3ZWlnaHRlZF9tZWFuLCBjb2xvciA9IGRvbm9yLCBncm91cCA9IGRvbm9yKSkgK1xuICBnZW9tX3BvaW50KCkgK1xuICBnZW9tX2xpbmUoKSArXG4gIGdlb21fZXJyb3JiYXIoZGF0YSA9IG1vdXNlX0FieF9ub2JhY19ENTBfc3VtbWFyeSwgYWVzKHg9dGltZSwgeW1pbj1tZWFuLCB5bWF4PW1lYW4pLFxuICAgICAgICAgICAgICAgIGNvbG9yID0gXCJyZWRcIiwgd2lkdGg9MC41LCBpbmhlcml0LmFlcyA9IEYpICtcbiAgZ2VvbV9lcnJvcmJhcihkYXRhID0gbW91c2VfQWJ4X25vYmFjX0Q1MF9zdW1tYXJ5LCBhZXMoeD10aW1lLCB5bWluPW1lYW4tc2UsIHltYXg9bWVhbitzZSksXG4gICAgICAgICAgICAgICAgd2lkdGg9MC4yNSwgaW5oZXJpdC5hZXMgPSBGKSArIFxuICBsYWJzKHggPSBcIlRpbWUgKGRheXMpXCIsIHkgPSBcIkFkanVzdGVkIG1lYW4gRlBTICjOvG0pXCIsIGNvbG9yID0gXCJDYWdlXCIpICtcbiAgc2NhbGVfeV9sb2cxMCgpICtcbiAgYW5ub3RhdGUoZ2VvbSA9IFwidGV4dFwiLCB4ID0gYygzKSwgeSA9IGMoNTI1KSwgbGFiZWwgPSBjKFwiKipcIiksIHNpemUgPSAxMCkgK1xuICBnZW9tX2hsaW5lKHlpbnRlcmNlcHQgPSA2MDAsIGFscGhhID0gMClcblxuXG5cbiMgR0Zcbm1vdXNlX2dmX25vYmFjIDwtIG1vdXNlX2dmX2N1cnZlcyAlPiVcbiAgZmlsdGVyKHNpemUgPiAyKSAlPiVcbiAgZ3JvdXBfYnkoc2FtcGxlX251bWJlciwgTWljcm9iaW9tZSwgU2V4LCBjYWdlLCBBZ2UuLndrcy4pICU+JVxuICBkcGx5cjo6c3VtbWFyaXplKHNpemUgPSBzaXplLCBtZWFuX2FkaiA9IDEwMCptZWFuL3N1bShtZWFuKSlcblxubW91c2VfZ2Zfbm9iYWNfc3VtbWFyeSA8LSBtb3VzZV9nZl9ub2JhYyAlPiVcbiAgZ3JvdXBfYnkoTWljcm9iaW9tZSwgc2l6ZSkgJT4lXG4gIGRwbHlyOjpzdW1tYXJpemUobWVhbjI9bWVhbihtZWFuX2FkaiksIHNlPXNkKG1lYW5fYWRqKS9zcXJ0KGxlbmd0aChtZWFuX2FkaikpKVxuXG5tb3VzZV9nZl9ub2JhY19jdXJ2ZV9wbG90IDwtIGdncGxvdChtb3VzZV9nZl9ub2JhY19zdW1tYXJ5LFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFlcyh4PXNpemUsIHkgPSBtZWFuMixcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY29sb3IgPSBNaWNyb2Jpb21lLCBncm91cCA9IE1pY3JvYmlvbWUpKSArXG4gIGdlb21fcmliYm9uKGFlcyh5bWluPW1lYW4yLXNlLCB5bWF4PW1lYW4yK3NlLCBmaWxsID0gTWljcm9iaW9tZSksXG4gICAgICAgICAgICAgIGNvbG9yID0gTkEsIGFscGhhID0gMC41KSArXG4gIGdlb21fbGluZSgpICtcbiAgZ2VvbV9obGluZShjb2xvciA9IFwiYmxhY2tcIiwgeWludGVyY2VwdCA9IDAsIGxpbmV0eXBlID0gXCJkYXNoZWRcIikgK1xuICBsYWJzKHggPSBcIlBhcnRpY2xlIHNpemUgKM68bSlcIiwgeSA9IFwiUGFydGljbGVzIGJ5IHZvbHVtZSAoJSlcIixcbiAgICAgICBjb2xvciA9IFwiTWljcm9iaW9tZVwiLCBmaWxsID0gXCJNaWNyb2Jpb21lXCIpICtcbiAgc2NhbGVfeF9sb2cxMChsaW1pdHM9YygwLjM1NywgMjM5MCkpXG5cblxubW91c2VfZ2Zfbm9iYWNfRDUwIDwtIG1vdXNlX2dmX0Q1MCAlPiVcbiAgbXV0YXRlKHdlaWdodGVkX21lYW4gPSBOQSkgJT4lXG4gIGFzLmRhdGEuZnJhbWUoKVxuXG5mb3IociBpbiAxOm5yb3cobW91c2VfZ2Zfbm9iYWNfRDUwKSkge1xuICBcbiB0bXAgPC0gbW91c2VfZ2Zfbm9iYWMgJT4lXG4gICAgZmlsdGVyKHNhbXBsZV9udW1iZXIgPT0gbW91c2VfZ2Zfbm9iYWNfRDUwW3IsIFwic2FtcGxlX251bWJlclwiXSlcbiBcbiAgbW91c2VfZ2Zfbm9iYWNfRDUwW3IsXCJ3ZWlnaHRlZF9tZWFuXCJdIDwtIHdlaWdodGVkX21lYW4odG1wJHNpemUsIHRtcCRtZWFuX2FkailcbiAgICBcbn1cblxubG0od2VpZ2h0ZWRfbWVhbiB+IE1pY3JvYmlvbWUsIG1vdXNlX2dmX25vYmFjX0Q1MCkgJT4lXG4gIHN1bW1hcnkoKVxuIyBwID0gMC4wNDg5ICogOilcblxubW91c2VfZ2Zfbm9iYWNfRDUwX3N1bW1hcnkgPC0gbW91c2VfZ2Zfbm9iYWNfRDUwICU+JVxuICBncm91cF9ieShNaWNyb2Jpb21lKSAlPiVcbiAgZHBseXI6OnN1bW1hcml6ZShtZWFuID0gbWVhbih3ZWlnaHRlZF9tZWFuKSwgc2UgPSBzZCh3ZWlnaHRlZF9tZWFuKS9zcXJ0KGxlbmd0aCh3ZWlnaHRlZF9tZWFuKSkpXG4gIFxuXG5tb3VzZV9nZl9ub2JhY19wbG90IDwtIGdncGxvdChtb3VzZV9nZl9ub2JhY19ENTAsIGFlcyh4ID0gTWljcm9iaW9tZSwgeSA9IHdlaWdodGVkX21lYW4sIGNvbG9yID0gY2FnZSkpICtcbiAgZ2VvbV9wb2ludChwb3NpdGlvbiA9IHBvc2l0aW9uX2ppdHRlcih3aWR0aCA9IDAuMDUsIGhlaWdodCA9IDApKSArXG4gIGdlb21fZXJyb3JiYXIoZGF0YSA9IG1vdXNlX2dmX25vYmFjX0Q1MF9zdW1tYXJ5LCBhZXMoeD1NaWNyb2Jpb21lLCB5bWluPW1lYW4sIHltYXg9bWVhbiksXG4gICAgICAgICAgICAgICAgY29sb3IgPSBcInJlZFwiLCB3aWR0aD0wLjUsIGluaGVyaXQuYWVzID0gRikgK1xuICBnZW9tX2Vycm9yYmFyKGRhdGEgPSBtb3VzZV9nZl9ub2JhY19ENTBfc3VtbWFyeSwgYWVzKHg9TWljcm9iaW9tZSwgeW1pbj1tZWFuLXNlLCB5bWF4PW1lYW4rc2UpLFxuICAgICAgICAgICAgICAgIHdpZHRoPTAuMjUsIGluaGVyaXQuYWVzID0gRikgKyBcbiAgbGFicyh4ID0gXCJNaWNyb2Jpb21lXCIsIHkgPSBcIkFkanVzdGVkIG1lYW4gRlBTICjOvG0pXCIsIGNvbG9yID0gXCJDYWdlXCIpICtcbiAgYW5ub3RhdGUoZ2VvbSA9IFwidGV4dFwiLCB4ID0gYygyKSwgeSA9IGMoMTkwKSwgbGFiZWwgPSBjKFwiKlwiKSwgc2l6ZSA9IDEwKSArXG4gIHNjYWxlX3lfbG9nMTAoKVxuXG5gYGAifQ== -->
+<pre class="r"><code>
 # Local minimum around 2 microns - using this as cutoff and recomputing
 
 # Abx
@@ -2001,8 +1970,8 @@ mouse_Abx_nobac_curve_plot &lt;- ggplot(mouse_Abx_nobac_summary,
                                      aes(x=size, y = mean2, color = time, group = time)) +
   geom_ribbon(aes(ymin=mean2-se, ymax=mean2+se, fill = time), color = NA, alpha = 0.5) +
   geom_line() +
-  geom_hline(color = \black\, yintercept = 0, linetype = \dashed\) +
-  labs(x = \Particle size (μm)\, y = \Particles by volume (%)\, color = \Time (days)\, fill = \Time (days)\) +
+  geom_hline(color = &quot;black&quot;, yintercept = 0, linetype = &quot;dashed&quot;) +
+  labs(x = &quot;Particle size (μm)&quot;, y = &quot;Particles by volume (%)&quot;, color = &quot;Time (days)&quot;, fill = &quot;Time (days)&quot;) +
   scale_x_log10(limits=c(0.357, 2390))
 
 ## Recompute medians
@@ -2017,11 +1986,11 @@ mouse_Abx_nobac_D50 &lt;- mouse_Abx_D50 %&gt;%
 for(r in 1:nrow(mouse_Abx_nobac_D50)) {
   
  tmp &lt;- mouse_Abx_nobac %&gt;%
-    filter(donor == mouse_Abx_nobac_D50[r, \donor\] &amp;
-             cond == mouse_Abx_nobac_D50[r, \cond\] &amp;
-             time == mouse_Abx_nobac_D50[r, \time\])
+    filter(donor == mouse_Abx_nobac_D50[r, &quot;donor&quot;] &amp;
+             cond == mouse_Abx_nobac_D50[r, &quot;cond&quot;] &amp;
+             time == mouse_Abx_nobac_D50[r, &quot;time&quot;])
  
-  mouse_Abx_nobac_D50[r,\weighted_mean\] &lt;- weighted_mean(tmp$size, tmp$mean_adj)
+  mouse_Abx_nobac_D50[r,&quot;weighted_mean&quot;] &lt;- weighted_mean(tmp$size, tmp$mean_adj)
     
 }
 
@@ -2039,12 +2008,12 @@ mouse_Abx_nobac_plot &lt;- ggplot(mouse_Abx_nobac_D50,
   geom_point() +
   geom_line() +
   geom_errorbar(data = mouse_Abx_nobac_D50_summary, aes(x=time, ymin=mean, ymax=mean),
-                color = \red\, width=0.5, inherit.aes = F) +
+                color = &quot;red&quot;, width=0.5, inherit.aes = F) +
   geom_errorbar(data = mouse_Abx_nobac_D50_summary, aes(x=time, ymin=mean-se, ymax=mean+se),
                 width=0.25, inherit.aes = F) + 
-  labs(x = \Time (days)\, y = \Adjusted mean FPS (μm)\, color = \Cage\) +
+  labs(x = &quot;Time (days)&quot;, y = &quot;Adjusted mean FPS (μm)&quot;, color = &quot;Cage&quot;) +
   scale_y_log10() +
-  annotate(geom = \text\, x = c(3), y = c(525), label = c(\**\), size = 10) +
+  annotate(geom = &quot;text&quot;, x = c(3), y = c(525), label = c(&quot;**&quot;), size = 10) +
   geom_hline(yintercept = 600, alpha = 0)
 
 
@@ -2065,9 +2034,9 @@ mouse_gf_nobac_curve_plot &lt;- ggplot(mouse_gf_nobac_summary,
   geom_ribbon(aes(ymin=mean2-se, ymax=mean2+se, fill = Microbiome),
               color = NA, alpha = 0.5) +
   geom_line() +
-  geom_hline(color = \black\, yintercept = 0, linetype = \dashed\) +
-  labs(x = \Particle size (μm)\, y = \Particles by volume (%)\,
-       color = \Microbiome\, fill = \Microbiome\) +
+  geom_hline(color = &quot;black&quot;, yintercept = 0, linetype = &quot;dashed&quot;) +
+  labs(x = &quot;Particle size (μm)&quot;, y = &quot;Particles by volume (%)&quot;,
+       color = &quot;Microbiome&quot;, fill = &quot;Microbiome&quot;) +
   scale_x_log10(limits=c(0.357, 2390))
 
 
@@ -2078,9 +2047,9 @@ mouse_gf_nobac_D50 &lt;- mouse_gf_D50 %&gt;%
 for(r in 1:nrow(mouse_gf_nobac_D50)) {
   
  tmp &lt;- mouse_gf_nobac %&gt;%
-    filter(sample_number == mouse_gf_nobac_D50[r, \sample_number\])
+    filter(sample_number == mouse_gf_nobac_D50[r, &quot;sample_number&quot;])
  
-  mouse_gf_nobac_D50[r,\weighted_mean\] &lt;- weighted_mean(tmp$size, tmp$mean_adj)
+  mouse_gf_nobac_D50[r,&quot;weighted_mean&quot;] &lt;- weighted_mean(tmp$size, tmp$mean_adj)
     
 }
 
@@ -2096,59 +2065,46 @@ mouse_gf_nobac_D50_summary &lt;- mouse_gf_nobac_D50 %&gt;%
 mouse_gf_nobac_plot &lt;- ggplot(mouse_gf_nobac_D50, aes(x = Microbiome, y = weighted_mean, color = cage)) +
   geom_point(position = position_jitter(width = 0.05, height = 0)) +
   geom_errorbar(data = mouse_gf_nobac_D50_summary, aes(x=Microbiome, ymin=mean, ymax=mean),
-                color = \red\, width=0.5, inherit.aes = F) +
+                color = &quot;red&quot;, width=0.5, inherit.aes = F) +
   geom_errorbar(data = mouse_gf_nobac_D50_summary, aes(x=Microbiome, ymin=mean-se, ymax=mean+se),
                 width=0.25, inherit.aes = F) + 
-  labs(x = \Microbiome\, y = \Adjusted mean FPS (μm)\, color = \Cage\) +
-  annotate(geom = \text\, x = c(2), y = c(190), label = c(\*\), size = 10) +
+  labs(x = &quot;Microbiome&quot;, y = &quot;Adjusted mean FPS (μm)&quot;, color = &quot;Cage&quot;) +
+  annotate(geom = &quot;text&quot;, x = c(2), y = c(190), label = c(&quot;*&quot;), size = 10) +
   scale_y_log10()
 </code></pre>
-<pre><code>
-&lt;!-- rnb-source-end --&gt;
-
-&lt;!-- rnb-chunk-end --&gt;
-
-
-&lt;!-- rnb-text-begin --&gt;
-
-
-
-# Patch figure
-
-&lt;!-- rnb-text-end --&gt;
-
-
-&lt;!-- rnb-chunk-begin --&gt;
-
-
-&lt;!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuXG56MyA8LSByZWFkUkRTKFxccGxvdHMvejNfcGxvdC5yZHNcXClcblxuIyBNYWtlIGZpZ3VyZSA1IC0gbWljZVxuZmlndXJlX3BhdGNoIDwtIChtb3VzZV9nZl9wbG90ICsgbW91c2VfZ2ZfY3VydmVfcGxvdCkgL1xuICAobW91c2VfQWJ4X3Bsb3QgKyBtb3VzZV9BYnhfY3VydmVfcGxvdCkgK1xuICBwbG90X2Fubm90YXRpb24odGFnX2xldmVscyA9IFxcQVxcKVxuXG4jZ2dzYXZlKFxccGxvdHMvZmlnNC5wbmdcXCwgZmlndXJlX3BhdGNoLCBoZWlnaHQgPSA2LCB3aWR0aCA9IDgpXG5cbiMgRmlnIFM5XG5maWdTOV9ib3R0b20gPC0gcGxvdF9ncmlkKG1vdXNlX2dmX25vYmFjX3Bsb3QsIG1vdXNlX2dmX25vYmFjX2N1cnZlX3Bsb3QsXG4gICAgICAgICAgICAgICAgICAgICAgICAgIG1vdXNlX0FieF9ub2JhY19wbG90LCBtb3VzZV9BYnhfbm9iYWNfY3VydmVfcGxvdCxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgbGFiZWxzID0gYyhcXEJcXCwgXFxDXFwsIFxcRFxcLCBcXEVcXCksIGxhYmVsX2ZvbnRmYWNlID0gXFxwbGFpblxcKVxuXG5maWdTOV9wYXRjaCA8LSBwbG90X2dyaWQoejMgK1xuICAgICAgICAgICAgICAgICAgICAgICAgICAgdGhlbWUobGVnZW5kLmRpcmVjdGlvbiA9IFxcaG9yaXpvbnRhbFxcLCBsZWdlbmQuYm94ID0gXFx2ZXJ0aWNhbFxcKSxcbiAgICAgICAgICAgICAgICAgICAgICAgICBmaWdTOV9ib3R0b20sXG4gICAgICAgICAgICAgICAgICAgICAgICAgIG5jb2wgPSAxLCByZWxfaGVpZ2h0cyA9IGMoMy4zLCA1KSxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgbGFiZWxzID0gYyhcXEFcXCwgXFxcXCksIGxhYmVsX2ZvbnRmYWNlID0gXFxwbGFpblxcKVxuXG4jZ2dzYXZlKFxccGxvdHMvZmlnUzkucG5nXFwsIGZpZ1M5X3BhdGNoLCBoZWlnaHQgPSA5LjUsIHdpZHRoID0gOClcblxuXG5cbmBgYFxuYGBgIn0= --&gt;
-
-```r
-```r
-
-z3 &lt;- readRDS(\plots/z3_plot.rds\)
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+</div>
+<div id="patch-figure" class="section level1">
+<h1>Patch figure</h1>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG56MyA8LSByZWFkUkRTKFwicGxvdHMvejNfcGxvdC5yZHNcIilcblxuIyBNYWtlIGZpZ3VyZSA1IC0gbWljZVxuZmlndXJlX3BhdGNoIDwtIChtb3VzZV9nZl9wbG90ICsgbW91c2VfZ2ZfY3VydmVfcGxvdCkgL1xuICAobW91c2VfQWJ4X3Bsb3QgKyBtb3VzZV9BYnhfY3VydmVfcGxvdCkgK1xuICBwbG90X2Fubm90YXRpb24odGFnX2xldmVscyA9IFwiQVwiKVxuXG4jZ2dzYXZlKFwicGxvdHMvZmlnNC5wbmdcIiwgZmlndXJlX3BhdGNoLCBoZWlnaHQgPSA2LCB3aWR0aCA9IDgpXG5cbiMgRmlnIFM5XG5maWdTOV9ib3R0b20gPC0gcGxvdF9ncmlkKG1vdXNlX2dmX25vYmFjX3Bsb3QsIG1vdXNlX2dmX25vYmFjX2N1cnZlX3Bsb3QsXG4gICAgICAgICAgICAgICAgICAgICAgICAgIG1vdXNlX0FieF9ub2JhY19wbG90LCBtb3VzZV9BYnhfbm9iYWNfY3VydmVfcGxvdCxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgbGFiZWxzID0gYyhcIkJcIiwgXCJDXCIsIFwiRFwiLCBcIkVcIiksIGxhYmVsX2ZvbnRmYWNlID0gXCJwbGFpblwiKVxuXG5maWdTOV9wYXRjaCA8LSBwbG90X2dyaWQoejMgK1xuICAgICAgICAgICAgICAgICAgICAgICAgICAgdGhlbWUobGVnZW5kLmRpcmVjdGlvbiA9IFwiaG9yaXpvbnRhbFwiLCBsZWdlbmQuYm94ID0gXCJ2ZXJ0aWNhbFwiKSxcbiAgICAgICAgICAgICAgICAgICAgICAgICBmaWdTOV9ib3R0b20sXG4gICAgICAgICAgICAgICAgICAgICAgICAgIG5jb2wgPSAxLCByZWxfaGVpZ2h0cyA9IGMoMy4zLCA1KSxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgbGFiZWxzID0gYyhcIkFcIiwgXCJcIiksIGxhYmVsX2ZvbnRmYWNlID0gXCJwbGFpblwiKVxuXG4jZ2dzYXZlKFwicGxvdHMvZmlnUzkucG5nXCIsIGZpZ1M5X3BhdGNoLCBoZWlnaHQgPSA5LjUsIHdpZHRoID0gOClcblxuXG5cbmBgYCJ9 -->
+<pre class="r"><code>
+z3 &lt;- readRDS(&quot;plots/z3_plot.rds&quot;)
 
 # Make figure 5 - mice
 figure_patch &lt;- (mouse_gf_plot + mouse_gf_curve_plot) /
   (mouse_Abx_plot + mouse_Abx_curve_plot) +
-  plot_annotation(tag_levels = \A\)
+  plot_annotation(tag_levels = &quot;A&quot;)
 
-#ggsave(\plots/fig4.png\, figure_patch, height = 6, width = 8)
+#ggsave(&quot;plots/fig4.png&quot;, figure_patch, height = 6, width = 8)
 
 # Fig S9
 figS9_bottom &lt;- plot_grid(mouse_gf_nobac_plot, mouse_gf_nobac_curve_plot,
                           mouse_Abx_nobac_plot, mouse_Abx_nobac_curve_plot,
-                          labels = c(\B\, \C\, \D\, \E\), label_fontface = \plain\)
+                          labels = c(&quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;), label_fontface = &quot;plain&quot;)
 
 figS9_patch &lt;- plot_grid(z3 +
-                           theme(legend.direction = \horizontal\, legend.box = \vertical\),
+                           theme(legend.direction = &quot;horizontal&quot;, legend.box = &quot;vertical&quot;),
                          figS9_bottom,
                           ncol = 1, rel_heights = c(3.3, 5),
-                          labels = c(\A\, \\), label_fontface = \plain\)
+                          labels = c(&quot;A&quot;, &quot;&quot;), label_fontface = &quot;plain&quot;)
 
-#ggsave(\plots/figS9.png\, figS9_patch, height = 9.5, width = 8)
+#ggsave(&quot;plots/figS9.png&quot;, figS9_patch, height = 9.5, width = 8)
 </code></pre>
-<p>```</p>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
