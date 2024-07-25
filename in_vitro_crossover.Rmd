@@ -9,6 +9,7 @@ library(tidyverse)
 library(patchwork)
 library(RColorBrewer)
 library(ggtext)
+library(cowplot)
 
 library(lme4)
 library(lmerTest)
@@ -71,45 +72,46 @@ colnames(medians) <- c("substrate", "inoc", "median", "se")
 # Plot
 ```{r}
 
-donor_order <- medians %>%
-  filter(substrate == "PE27" & inoc != "control") %>%
-  arrange(desc(median)) %>%
+medians_summary <- medians %>%
+  group_by(inoc) %>%
+  summarize(mean=mean(median), se = sd(median)/sqrt(length(median)))
+
+donor_order <- medians_summary %>%
+  filter(inoc != "con") %>%
+  arrange(desc(mean)) %>%
   pull(inoc) %>%
-  c("control", .)
+  c("con", .)
 
 medians$inoc <- factor(medians$inoc, levels = donor_order)
+medians_summary$inoc <- factor(medians_summary$inoc, levels = donor_order)
 
 medians %>%
   lmer(median ~ inoc + (1 | substrate), data = .) %>%
   summary()
-# inocNH84     -2.8733     3.7803  20.0000  -0.760  0.45607   
-# inocEX17      2.3133     3.7803  20.0000   0.612  0.54747   
-# inocSM56     -0.8133     3.7803  20.0000  -0.215  0.83183   
-# inocAA89      1.5267     3.7803  20.0000   0.404  0.69061   
-# inocWB74     -4.4600     3.7803  20.0000  -1.180  0.25192   
-# inocPJ48     -3.8000     3.7803  20.0000  -1.005  0.32680   
-# inocQX74     -3.3933     3.7803  20.0000  -0.898  0.38005   
-# inocXD99     -6.9200     3.7803  20.0000  -1.831  0.08211 . 
-# inocGT64     -8.3067     3.7803  20.0000  -2.197  0.03994 * 
-# inocZQ31    -14.4333     3.7803  20.0000  -3.818  0.00108 **
-
-medians_summary <- medians %>%
-  group_by(inoc) %>%
-  summarize(mean=mean(median), se = sd(median)/sqrt(length(median)))
+#inocH         2.3133     3.7803  20.0000   0.612  0.54747   
+#inocI         1.5267     3.7803  20.0000   0.404  0.69061   
+#inocE        -0.8133     3.7803  20.0000  -0.215  0.83183   
+#inocC        -2.8733     3.7803  20.0000  -0.760  0.45607   
+#inocJ        -3.3933     3.7803  20.0000  -0.898  0.38005   
+#inocB        -3.8000     3.7803  20.0000  -1.005  0.32680   
+#inocA        -4.4600     3.7803  20.0000  -1.180  0.25192   
+#inocG        -6.9200     3.7803  20.0000  -1.831  0.08211 . 
+#inocD        -8.3067     3.7803  20.0000  -2.197  0.03994 * 
+#inocF       -14.4333     3.7803  20.0000  -3.818  0.00108 **
  
 
 z2_plot <- ggplot(medians, aes(x = inoc, y = median, color = substrate)) +
-  geom_point(position=position_jitter(0.05), alpha=0.5) +
+  geom_point() +
+  geom_line(aes(group = substrate)) +
   geom_errorbar(data = medians_summary, aes(x=inoc, ymin=mean, ymax=mean),
                 width=0.5, color = "red", inherit.aes = F) +
   geom_errorbar(data = medians_summary, aes(x=inoc, ymin=mean-se, ymax=mean+se),
                 width=0.25, inherit.aes = F) + 
   labs(x = "Inoculation donor", y = "Median FPS (μm)", color = "Substrate donor") +
-  annotate(geom = "text", x = 10:11, y = c(90, 85), label = "*", size = 10) +
+  annotate(geom = "text", x = 10:11, y = c(90, 85), label = c("*", "**"), size = 10) +
   scale_color_brewer(palette = "Dark2")
 
 #ggsave("plots/z2_medians.png", z2_plot, height = 3, width = 6.5)
-
 
 
 medians_spread <- medians %>%
@@ -158,6 +160,71 @@ medians_spread %>%
 # predict WH89: p = 0.01385 *
 # predict ZR77: p = 0.01447 *
 # Really this is just because WH89 and ZR77 are so nicely correlated; PE27 does not seem to add anything
+
+# Calculate percent change from control
+## From medians: x-con = 89.74, y-con = 103.60, z-con = 69.36
+medians_prop <- medians_spread %>%
+  mutate(x = (x - 89.74) / 89.74,
+         y = (y - 103.60) / 103.60,
+         z = (z - 69.36) / 69.36) %>%
+  gather(key = substrate, value = percent_change, 2:4) %>%
+  mutate(percent_change = percent_change * 100) %>%
+  mutate(inoc = factor(inoc, levels = donor_order))
+
+medians_prop %>%
+  lmer(percent_change ~ inoc + (1 | substrate), data = .) %>%
+  summary()
+#inocI        -0.2836     3.7985  18.0000  -0.075 0.941313    
+#inocE        -3.5621     3.7985  18.0000  -0.938 0.360780    
+#inocC        -6.5480     3.7985  18.0000  -1.724 0.101870    
+#inocJ        -6.3759     3.7985  18.0000  -1.679 0.110517    
+#inocB        -6.5809     3.7985  18.0000  -1.732 0.100284    
+#inocA        -7.3201     3.7985  18.0000  -1.927 0.069900 .  
+#inocG       -10.0809     3.7985  18.0000  -2.654 0.016154 *  
+#inocD       -11.1107     3.7985  18.0000  -2.925 0.009043 ** 
+#inocF       -18.2375     3.7985  18.0000  -4.801 0.000143 ***
+
+# Actually, since I don't have a control to compare everything against in this case, I should do the 
+## ANOVA (cluster + participant) followed by Tukey HSD test approach
+medians_prop %>%
+  aov(percent_change ~ inoc + substrate, data = .) %>%
+  summary()
+#inoc         9  778.4   86.49   3.996 0.00599 **
+#substrate    2   83.3   41.67   1.925 0.17471
+
+medians_prop %>%
+  aov(percent_change ~ inoc + substrate, data = .) %>%
+  TukeyHSD(which = "inoc")
+# F-H p = 0.0042434 **
+# F-I p = 0.0049493 **
+# F-E p = 0.0288620 *
+
+medians_prop_summary <- medians_prop %>%
+  group_by(inoc) %>%
+  summarize(mean=mean(percent_change), se = sd(percent_change)/sqrt(length(percent_change)))
+
+# Make the plot
+library(ggsignif)
+
+prop_plot <- ggplot(medians_prop, aes(x = inoc, y = percent_change, color = substrate)) +
+  geom_line(aes(group = substrate)) +
+  geom_point() +
+  geom_errorbar(data = medians_prop_summary, aes(x=inoc, ymin=mean, ymax=mean),
+                width=0.5, color = "red", inherit.aes = F) +
+  geom_errorbar(data = medians_prop_summary, aes(x=inoc, ymin=mean-se, ymax=mean+se),
+                width=0.25, inherit.aes = F) + 
+  labs(x = "Inoculation donor",
+       y = "Change in median FPS\nfrom control (%)",
+       color = "Substrate donor") +
+  #annotate(geom = "text", x = 10:11, y = c(90, 85), label = "*", size = 10) +
+  scale_color_brewer(palette = "Dark2") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+  geom_signif(comparisons = list(c(1, 10)), y_position = 10, color = "black",
+              annotations = "**",  tip_length = 0, textsize = 7, vjust = 0.5) +
+  geom_signif(comparisons = list(c(2, 10)),  y_position = 8, color = "black",
+              annotations = "**",  tip_length = 0, textsize = 7, vjust = 0.5) +
+  geom_signif(comparisons = list(c(3, 10)),  y_position = 6, color = "black",
+              annotations = "*", tip_length = 0, textsize = 7, vjust = 0.5)
 
 
 ```
@@ -258,8 +325,8 @@ all_bins_spread <- summarize_fps_all_bins(data) %>%
   mutate(sample = paste0(substrate_donor_short, "_", inoc_donor_short)) %>%
   left_join(medians2) %>%
   relocate(sample:Total, .after = inoc_donor_short) %>%
-  mutate(inoc = case_when(inoc == "con" ~ "Control",
-                          T ~ inoc)) %>%
+  #mutate(inoc = case_when(inoc == "con" ~ "Control",
+  #                        T ~ inoc)) %>%
   mutate(inoc = factor(inoc, levels = c(toupper(letters[1:10]), "Control")))
   
 
@@ -272,11 +339,13 @@ all_bins_spread_data <- all_bins_spread %>%
 fps_pca <- prcomp(all_bins_spread_data, center = TRUE, scale. = TRUE)
 
 # slow step
+library(vegan)
 adonis2(scale(all_bins_spread_data) ~ inoc, data = all_bins_spread,
         strata = all_bins_spread$substrate,
         permutations=9999, method = "eu")
 # R2 = 0.18298, p = 0.0012 **
 
+library(ggfortify)
 
 fps_pca_plot <- autoplot(fps_pca, data = all_bins_spread, colour = "inoc",
                          size = "median", shape = "substrate", alpha = 0.8) +
@@ -294,6 +363,15 @@ adonis2(scale(all_bins_spread_data) ~ Total, data = all_bins_spread,
 
 #saveRDS(fps_pca_plot, "plots/z3_plot.rds")
 
+
+```
+
+# Patch figs
+```{r}
+# New supp fig for revision
+patch <- plot_grid(z2_plot, prop_plot,
+                   ncol = 1, labels = c("B", "C"),
+                   label_fontface = "plain")
 
 ```
 

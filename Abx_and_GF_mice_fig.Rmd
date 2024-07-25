@@ -72,7 +72,9 @@ mouse_gf <- read.csv("data/CY_mice_mastersizer.csv") %>%
   left_join(mouse_gf_metadata, by = c("sample_number" = "sample")) %>%
   relocate(strain:Age..wks., .after = sample_number) %>%
   #filter(sample_number != "26") # insufficient sample here - obscuration ~ 0.05
-  filter(Microbiome != "Dysbiosed") # DSS-colitis seems to increase FPS, but insufficient n to say
+  filter(Microbiome != "Dysbiosed") %>% # DSS-colitis seems to increase FPS, but insufficient n to say
+  mutate(Microbiome = case_when(Microbiome == "GF" ~ "germ-free",
+                                Microbiome == "SPF" ~ "specific\npathogen-free"))
 
 mouse_gf_D50 <- mouse_gf %>%
   dplyr::select(sample_number, Microbiome, Sex, cage, Age..wks., Dx..50.) %>%
@@ -132,7 +134,7 @@ mouse_Abx_plot <- ggplot(mouse_Abx_D50, aes(x = time, y = median, color = donor,
                 color = "red", width=0.5, inherit.aes = F) +
   geom_errorbar(data = mouse_Abx_D50_summary, aes(x=time, ymin=mean-se, ymax=mean+se),
                 width=0.25, inherit.aes = F) + 
-  labs(x = "Time (days)", y = "Median FPS (μm)", color = "Cage") +
+  labs(x = "Time (days)", y = "Median fecal particle size (μm)", color = "Cage") +
   scale_y_log10() +
   annotate(geom = "text", x = c(2,3), y = c(270, 485), label = c("*", "***"), size = 10) +
   geom_hline(yintercept = 510, alpha = 0)
@@ -154,7 +156,7 @@ mouse_gf_plot <- ggplot(mouse_gf_D50, aes(x = Microbiome, y = median, color = ca
                 color = "red", width=0.5, inherit.aes = F) +
   geom_errorbar(data = mouse_gf_D50_summary, aes(x=Microbiome, ymin=mean-se, ymax=mean+se),
                 width=0.25, inherit.aes = F) + 
-  labs(x = "Microbiome", y = "Median FPS (μm)", color = "Cage") +
+  labs(x = "Microbiome", y = "Median fecal particle size (μm)", color = "Cage") +
   annotate(geom = "text", x = c(2), y = c(155), label = c("**"), size = 10) +
   geom_hline(yintercept = 200, alpha = 0) +
   scale_y_log10()
@@ -306,12 +308,12 @@ figure_patch <- (mouse_gf_plot + mouse_gf_curve_plot) /
   (mouse_Abx_plot + mouse_Abx_curve_plot) +
   plot_annotation(tag_levels = "A")
 
-#ggsave("plots/fig4.png", figure_patch, height = 6, width = 8)
+ggsave("plots/fig4.png", figure_patch, height = 6, width = 8)
 
 # Fig S9
 figS9_bottom <- plot_grid(mouse_gf_nobac_plot, mouse_gf_nobac_curve_plot,
                           mouse_Abx_nobac_plot, mouse_Abx_nobac_curve_plot,
-                          labels = c("B", "C", "D", "E"), label_fontface = "plain")
+                          labels = c("A", "B", "C", "D"), label_fontface = "plain")
 
 figS9_patch <- plot_grid(z3 +
                            theme(legend.direction = "horizontal", legend.box = "vertical"),
@@ -319,7 +321,7 @@ figS9_patch <- plot_grid(z3 +
                           ncol = 1, rel_heights = c(3.3, 5),
                           labels = c("A", ""), label_fontface = "plain")
 
-#ggsave("plots/figS9.png", figS9_patch, height = 9.5, width = 8)
+#ggsave("plots/figS9.png", figS9_bottom, height = 7, width = 8)
 
 
 

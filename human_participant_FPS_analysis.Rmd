@@ -322,7 +322,8 @@ k_clust <- fviz_cluster(km, data = all_bins_spread_data, labelsize = NA, main = 
                         shape = 19, show.clust.cent = F,
                         pointsize = log2(all_bins_spread$median_FPS) / 2, alpha = 0.5) +
   theme_bw() +
-  labs(color = "Cluster", fill = "Cluster", shape = "Cluster")
+  labs(color = "Cluster", fill = "Cluster", shape = "Cluster",
+       x = "PC1 (53.0%)", y = "PC2 (15.3%)")
 
 kdata <- cbind(all_bins_spread[,c(1:5, 108)], cluster = km$cluster)
 
@@ -364,7 +365,7 @@ k_median_plot <- ggplot(kdata, aes(x = cluster, y = median_FPS)) +
                 color = "red", width=0.5, inherit.aes = F) +
   geom_errorbar(data = kdata_summary, aes(x=cluster, ymin=mean-se, ymax=mean+se),
                 width=0.25, inherit.aes = F) + 
-  labs(x = "Cluster", y = "Median FPS (μm)") +
+  labs(x = "Cluster", y = "Median fecal particle\nsize (μm)") +
   annotate(geom = "text", x = 1:5, y = c(60, 90, 250, 20, 120),
            label = c("a", "a", "b", "c", "d")) +
   scale_y_log10()
@@ -482,7 +483,7 @@ diversity_plot <- ggplot(diversity, aes(x = median_FPS, y = value, color = cohor
   #geom_point(alpha = 0.1) +
   geom_point(data = diversity_summary) +
   scale_color_brewer(palette = "Set1") +
-  labs(x = "Median FPS (μm)", y = "Alpha diversity", color = "Cohort") +
+  labs(x = "Median fecal particle size (μm)", y = "Alpha diversity", color = "Cohort") +
   geom_textbox(data = data.frame(x=c(82, 100),
                                  y = c(200, 4.2),
                                  label = c("*p* = 4.8 x 10<sup>-9</sup>",
@@ -499,7 +500,7 @@ diversity_summary_plot <- ggplot(diversity_summary %>%
                                  aes(x = median_FPS, y = value, color = cohort)) +
   geom_point() +
   scale_color_brewer(palette = "Set1") +
-  labs(x = "Median FPS (μm)", y = "Alpha diversity", color = "Cohort") +
+  labs(x = "Median fecal particle size (μm)", y = "Alpha diversity", color = "Cohort") +
   geom_textbox(data = data.frame(x=c(62, 62),
                                  y = c(220, 4.2),
                                  label = c("Spearman's &rho; = -0.64<br>*p* = 5.6 x 10<sup>-10</sup>",
@@ -965,7 +966,7 @@ scfa_total_plot <- scfa_all %>%
                 width=0.25, inherit.aes = F) + 
     annotate(geom = "text", x = 1:5, y = c(185, 145, 195, 145, 160),
            label = c("ab", "ab", "a", "b", "a")) +
-  labs(y = "Total SCFA concentration (mM)", x = "Cluster")
+  labs(y = "Total short-chain fatty\nacid concentration (mM)", x = "Cluster")
 
 scfa_indiv_plot <- scfa_all %>%
   filter(scfa != "Total") %>%
@@ -977,7 +978,7 @@ scfa_indiv_plot <- scfa_all %>%
   geom_errorbar(data = filter(scfa_all_summary, scfa != "Total"),
                 aes(x=cluster, ymin=mean-se, ymax=mean+se),
                 width=0.25, inherit.aes = F) + 
-  labs(y = "SCFA concentration (mM)", x = "Cluster") +
+  labs(y = "Short-chain fatty acid concentration (mM)", x = "Cluster") +
   geom_text(data = scfa_signif_labels, aes(label = label, x = cluster, y = conc),
             inherit.aes = F) +
   facet_wrap(~scfa, scales = "free_y", ncol = 2)
@@ -1659,7 +1660,7 @@ median_plot <- ggplot(cohort2_median, aes(x = day_merge, y = median_FPS, color =
   geom_errorbar(data = medians_summary,
                 aes(x=day_merge, ymin=mean-se, ymax=mean+se, color=week),
                 width=0.25, inherit.aes = F) + 
-  labs(x = "Time (days)", y = "Median FPS (μm)", color = "Week") +
+  labs(x = "Time (days)", y = "Median fecal particle size (μm)", color = "Week") +
   geom_hline(yintercept = 480, alpha = 0) +
   scale_color_brewer(palette = "Set1") +
   scale_y_log10() +
@@ -2365,12 +2366,12 @@ figS5_patch <- plot_grid(figS5_top, signif_taxa_plot,
 
 
 # Figure 5 - SCFA and FPS cluster
-fig5_right <- plot_grid(scfa_total_plot, moisture_plot,
+fig5_right <- plot_grid(moisture_plot, scfa_total_plot,
                         ncol = 1,
-                        labels = c("B", "C"), label_fontface = "plain")
-fig5_patch <- plot_grid(scfa_indiv_plot, fig5_right,
-                        ncol = 2, rel_widths = c(3,2),
-                        labels = c("A", ""), label_fontface = "plain")
+                        labels = c("A", "B"), label_fontface = "plain")
+fig5_patch <- plot_grid(fig5_right, scfa_indiv_plot,
+                        ncol = 2, rel_widths = c(2,3),
+                        labels = c("", "C"), label_fontface = "plain")
 
 #ggsave("plots/fig5.png", fig5_patch, height = 7, width = 10)
 
@@ -2413,7 +2414,7 @@ fig4_patch <- plot_grid(exit_change_plot +
                         ncol = 1, rel_heights = c(2, 2, 0.25),
                         labels = c("A", "", ""), label_fontface = "plain")
 
-ggsave("plots/fig4.png", fig4_patch, height = 7, width = 7)
+#ggsave("plots/fig4.png", fig4_patch, height = 7, width = 7)
 
 # Figure S7 - additional data from chewing intervention - microbiome and SCFA
 
@@ -2467,7 +2468,7 @@ figS11_patch <- plot_grid(macro_corr_plot, fig_dietFPS,
                          nrow = 1,
                          labels = c("A", ""), label_fontface = "plain")
 
-ggsave("plots/figS11.png", figS11_patch, height = 9, width = 12)
+# ggsave("plots/figS11.png", figS11_patch, height = 9, width = 12)
 
 #ggsave("plots/median_plot_indiv.png", median_plot_indiv, height = 6, width = 7)
 
